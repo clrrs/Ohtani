@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Museum Interactive Display</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            scroll-behavior: smooth; /* Smooth scrolling */
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+        }
+        .section {
+            scroll-snap-align: start;
+            scroll-snap-stop: always; /* Ensure snapping */
+            flex: 0 0 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .section video, .section img {
+            max-height: 1080px;
+            width: auto;
+            object-fit: contain; /* Ensure images fit within their containers */
+            position: relative;
+        }
+        .emoji-overlay {
+            position: absolute;
+            bottom: 10px;
+            font-size: 4rem; /* Increased size */
+            cursor: pointer;
+            z-index: 10; /* Higher z-index */
+        }
+        .emoji {
+            position: absolute;
+            font-size: 4rem; /* Increased size */
+            animation: floatUp 2s ease-in-out forwards; /* Increased speed */
+            z-index: 5; /* Lower z-index */
+        }
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-75px) translateX(calc(-25px + 50px * random())) rotate(180deg); /* Random wiggling */
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-150px) translateX(calc(-50px + 100px * random())) rotate(360deg); /* Increased distance */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="section" id="section1">
+            <img src="image_1.png" alt="Image 1">
+            <div class="emoji-overlay" style="left: calc(50% - 300px);" onclick="animateEmojis(this)">😊</div>
+            <div class="emoji-overlay" style="left: calc(50% - 150px);" onclick="animateEmojis(this)">😊</div>
+            <div class="emoji-overlay" style="left: calc(50%);" onclick="animateEmojis(this)">😊</div>
+            <div class="emoji-overlay" style="left: calc(50% + 150px);" onclick="animateEmojis(this)">😊</div>
+        </div>
+        <div class="section" id="section2">
+            <img src="image_2.png" alt="Image 2">
+            <div class="emoji-overlay" style="left: calc(50% - 300px);" onclick="animateEmojis(this)">😊</div>
+            <div class="emoji-overlay" style="left: calc(50% - 150px);" onclick="animateEmojis(this)">😊</div>
+            <div class="emoji-overlay" style="left: calc(50%);" onclick="animateEmojis(this)">😊</div>
+            <div class="emoji-overlay" style="left: calc(50% + 150px);" onclick="animateEmojis(this)">😊</div>
+        </div>
+        <div class="section" id="section3">
+            <img src="image_3.png" alt="Image 3">
+            <div class="emoji-overlay" style="left: calc(50% - 300px);" onclick="animateEmojis(this)">😊</div>
+            <div class="emoji-overlay" style="left: calc(50% - 150px);" onclick="animateEmojis(this)">😊</div>
+            <div class="emoji-overlay" style="left: calc(50%);" onclick="animateEmojis(this)">😊</div>
+            <div class="emoji-overlay" style="left: calc(50% + 150px);" onclick="animateEmojis(this)">😊</div>
+        </div>
+        <div class="section" id="section4">
+            <img src="image_4.png" alt="Image 4">
+            <div class="emoji-overlay" style="left: calc(50% - 300px);" onclick="animateEmojis(this)">😊</div>
+            <div class="emoji-overlay" style="left: calc(50% - 150px);" onclick="animateEmojis(this)">😊</div>
+            <div class="emoji-overlay" style="left: calc(50%);" onclick="animateEmojis(this)">😊</div>
+            <div class="emoji-overlay" style="left: calc(50% + 150px);" onclick="animateEmojis(this)">😊</div>
+        </div>
+        <div class="section" id="section5">
+            <img src="image_5.png" alt="Image 5">
+            <div class="emoji-overlay" style="left: calc(50% - 300px);" onclick="animateEmojis(this)">😊</div>
+            <div class="emoji-overlay" style="left: calc(50% - 150px);" onclick="animateEmojis(this)">😊</div>
+            <div class="emoji-overlay" style="left: calc(50%);" onclick="animateEmojis(this)">😊</div>
+            <div class="emoji-overlay" style="left: calc(50% + 150px);" onclick="animateEmojis(this)">😊</div>
+        </div>
+        <div class="section" id="section6">
+            <img src="image_6.png" alt="Image 6">
+            <div class="emoji-overlay" style="left: calc(50% - 300px);" onclick="animateEmojis(this)">😊</div>
+            <div class="emoji-overlay" style="left: calc(50% - 150px);" onclick="animateEmojis(this)">😊</div>
+            <div class="emoji-overlay" style="left: calc(50%);" onclick="animateEmojis(this)">😊</div>
+            <div class="emoji-overlay" style="left: calc(50% + 150px);" onclick="animateEmojis(this)">😊</div>
+        </div>
+    </div>
+    <script>
+        function animateEmojis(overlay) {
+            const section = overlay.parentElement;
+            const overlayRect = overlay.getBoundingClientRect();
+            const sectionRect = section.getBoundingClientRect();
+            const offsetX = overlayRect.left - sectionRect.left + overlayRect.width / 2;
+            const offsetY = overlayRect.bottom - sectionRect.top;
+
+            const emojiCount = Math.floor(Math.random() * 6) + 3; // Random number between 3 and 8
+
+            for (let i = 0; i < emojiCount; i++) {
+                setTimeout(() => {
+                    const emoji = document.createElement('div');
+                    emoji.classList.add('emoji');
+                    emoji.style.left = `${offsetX}px`;
+                    emoji.style.bottom = `${offsetY}px`;
+                    emoji.textContent = '😊';
+                    section.appendChild(emoji);
+                    setTimeout(() => {
+                        emoji.remove();
+                    }, 2000); // Adjusted to match animation duration
+                }, i * 200); // Staggered spawn times
+            }
+        }
+    </script>
+</body>
+</html>

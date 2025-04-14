@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Museum Interactive Display</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            scroll-behavior: smooth; /* Smooth scrolling */
+        }
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 200%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            align-content: space-around;
+            z-index: 1;
+        }
+        .background img {
+            width: 20%;
+            height: 20%;
+            margin: 2.5%;
+            object-fit: cover; /* Crop the image to fit the container */
+        }
+        .container {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+        }
+        .section {
+            scroll-snap-align: start;
+            scroll-snap-stop: always; /* Ensure snapping */
+            flex: 0 0 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .section img {
+            max-height: 80%;
+            width: auto;
+            object-fit: contain; /* Ensure images fit within their containers */
+        }
+        .emoji-container {
+            position: absolute;
+            bottom: 10px;
+            display: flex;
+            gap: 40px;
+        }
+        .emoji {
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+        }
+        .animated-emoji {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            animation: floatUp 1s ease-in-out forwards;
+        }
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) rotate(180deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/01.png" alt="Background Image 1">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/02.png" alt="Background Image 2">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/03.png" alt="Background Image 3">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/04.png" alt="Background Image 4">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/05.png" alt="Background Image 5">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/06.png" alt="Background Image 6">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/07.png" alt="Background Image 7">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/08.png" alt="Background Image 8">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/09.png" alt="Background Image 9">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/10.png" alt="Background Image 10">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/11.png" alt="Background Image 11">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/12.png" alt="Background Image 12">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/13.png" alt="Background Image 13">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/14.png" alt="Background Image 14">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/15.png" alt="Background Image 15">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/16.png" alt="Background Image 16">
+    </div>
+    <div class="container">
+        <div class="section" id="section1">
+            <img src="image_1.jpg" alt="Foreground Image 1">
+            <div class="emoji-container">
+                <div class="emoji" onclick="animateEmoji(this)">😊</div>
+                <div class="emoji" onclick="animateEmoji(this)">❤️</div>
+                <div class="emoji" onclick="animateEmoji(this)">⚾</div>
+                <div class="emoji" onclick="animateEmoji(this)">👍</div>
+            </div>
+        </div>
+        <div class="section" id="section2">
+            <img src="image_2.jpg" alt="Foreground Image 2">
+            <div class="emoji-container">
+                <div class="emoji" onclick="animateEmoji(this)">😊</div>
+                <div class="emoji" onclick="animateEmoji(this)">❤️</div>
+                <div class="emoji" onclick="animateEmoji(this)">⚾</div>
+                <div class="emoji" onclick="animateEmoji(this)">👍</div>
+            </div>
+        </div>
+        <div class="section" id="section3">
+            <img src="image_3.jpg" alt="Foreground Image 3">
+            <div class="emoji-container">
+                <div class="emoji" onclick="animateEmoji(this)">😊</div>
+                <div class="emoji" onclick="animateEmoji(this)">❤️</div>
+                <div class="emoji" onclick="animateEmoji(this)">⚾</div>
+                <div class="emoji" onclick="animateEmoji(this)">👍</div>
+            </div>
+        </div>
+        <div class="section" id="section4">
+            <img src="image_4.jpg" alt="Foreground Image 4">
+            <div class="emoji-container">
+                <div class="emoji" onclick="animateEmoji(this)">😊</div>
+                <div class="emoji" onclick="animateEmoji(this)">❤️</div>
+                <div class="emoji" onclick="animateEmoji(this)">⚾</div>
+                <div class="emoji" onclick="animateEmoji(this)">👍</div>
+            </div>
+        </div>
+        <div class="section" id="section5">
+            <img src="image_5.jpg" alt="Foreground Image 5">
+            <div class="emoji-container">
+                <div class="emoji" onclick="animateEmoji(this)">😊</div>
+                <div class="emoji" onclick="animateEmoji(this)">❤️</div>
+                <div class="emoji" onclick="animateEmoji(this)">⚾</div>
+                <div class="emoji" onclick="animateEmoji(this)">👍</div>
+            </div>
+        </div>
+        <div class="section" id="section6">
+            <img src="image_6.jpg" alt="Foreground Image 6">
+            <div class="emoji-container">
+                <div class="emoji" onclick="animateEmoji(this)">😊</div>
+                <div class="emoji" onclick="animateEmoji(this)">❤️</div>
+                <div class="emoji" onclick="animateEmoji(this)">⚾</div>
+                <div class="emoji" onclick="animateEmoji(this)">👍</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function animateEmoji(emoji) {
+            const section = emoji.parentElement.parentElement;
+            const emojiRect = emoji.getBoundingClientRect();
+            const sectionRect = section.getBoundingClientRect();
+            const offsetX = emojiRect.left - sectionRect.left;
+            const offsetY = sectionRect.bottom - emojiRect.bottom;
+
+            const animatedEmoji = document.createElement('div');
+            animatedEmoji.classList.add('animated-emoji');
+            animatedEmoji.style.left = `${offsetX}px`;
+            animatedEmoji.style.bottom = `${offsetY}px`;
+            animatedEmoji.textContent = emoji.textContent;
+            section.appendChild(animatedEmoji);
+
+            setTimeout(() => {
+                animatedEmoji.remove();
+            }, 1000); // Animation duration
+        }
+    </script>
+</body>
+</html>

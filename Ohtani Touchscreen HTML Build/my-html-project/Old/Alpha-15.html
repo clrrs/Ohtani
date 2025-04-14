@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Museum Interactive Display</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            scroll-behavior: smooth; /* Smooth scrolling */
+        }
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 200%;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            align-content: space-around;
+            z-index: 1;
+            transform: translateY(0); /* Initial position */
+            transition: transform 0.1s ease-out; /* Smooth transition */
+        }
+        .background img {
+            width: 20%;
+            height: 20%;
+            margin: 2.5%;
+            object-fit: cover; /* Crop the image to fit the container */
+        }
+        .container {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            scroll-behavior: smooth; /* Smooth scrolling */
+        }
+        .section {
+            scroll-snap-align: start;
+            scroll-snap-stop: always; /* Ensure snapping */
+            flex: 0 0 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: scroll-snap-align 0.5s ease; /* Slow down snapping */
+        }
+        .section img {
+            height: calc(100vh - 80px); /* 40px border at top and bottom */
+            width: auto; /* Preserve aspect ratio */
+            object-fit: contain; /* Ensure images fit within their containers */
+        }
+        .emoji-container {
+            position: absolute;
+            bottom: 10px;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+        }
+        .emoji {
+            width: 100px; /* Set size back to 100px */
+            height: 100px; /* Set size back to 100px */
+            cursor: pointer;
+        }
+        .animated-emoji {
+            position: absolute;
+            width: 100px; /* Set size back to 100px */
+            height: 100px; /* Set size back to 100px */
+            animation: floatUp 1s ease-in-out forwards;
+        }
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-300px) rotate(180deg); /* Tripled animation distance */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background" id="background">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/01.png" alt="Background Image 1">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/02.png" alt="Background Image 2">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/03.png" alt="Background Image 3">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/04.png" alt="Background Image 4">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/05.png" alt="Background Image 5">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/06.png" alt="Background Image 6">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/07.png" alt="Background Image 7">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/08.png" alt="Background Image 8">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/09.png" alt="Background Image 9">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/10.png" alt="Background Image 10">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/11.png" alt="Background Image 11">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/12.png" alt="Background Image 12">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/13.png" alt="Background Image 13">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/14.png" alt="Background Image 14">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/15.png" alt="Background Image 15">
+        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/16.png" alt="Background Image 16">
+    </div>
+    <div class="container" id="container">
+        <div class="section" id="section1">
+            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/Foreground/image_1.png" alt="Foreground Image 1">
+            <div class="emoji-container">
+                <div class="emoji" onclick="animateEmoji(this)">😊</div>
+                <div class="emoji" onclick="animateEmoji(this)">❤️</div>
+                <div class="emoji" onclick="animateEmoji(this)">⚾</div>
+                <div class="emoji" onclick="animateEmoji(this)">👍</div>
+            </div>
+        </div>
+        <div class="section" id="section2">
+            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/Foreground/image_2.png" alt="Foreground Image 2">
+            <div class="emoji-container">
+                <div class="emoji" onclick="animateEmoji(this)">😊</div>
+                <div class="emoji" onclick="animateEmoji(this)">❤️</div>
+                <div class="emoji" onclick="animateEmoji(this)">⚾</div>
+                <div class="emoji" onclick="animateEmoji(this)">👍</div>
+            </div>
+        </div>
+        <div class="section" id="section3">
+            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/Foreground/image_3.png" alt="Foreground Image 3">
+            <div class="emoji-container">
+                <div class="emoji" onclick="animateEmoji(this)">😊</div>
+                <div class="emoji" onclick="animateEmoji(this)">❤️</div>
+                <div class="emoji" onclick="animateEmoji(this)">⚾</div>
+                <div class="emoji" onclick="animateEmoji(this)">👍</div>
+            </div>
+        </div>
+        <div class="section" id="section4">
+            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/Foreground/image_4.png" alt="Foreground Image 4">
+            <div class="emoji-container">
+                <div class="emoji" onclick="animateEmoji(this)">😊</div>
+                <div class="emoji" onclick="animateEmoji(this)">❤️</div>
+                <div class="emoji" onclick="animateEmoji(this)">⚾</div>
+                <div class="emoji" onclick="animateEmoji(this)">👍</div>
+            </div>
+        </div>
+        <div class="section" id="section5">
+            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/Foreground/image_5.png" alt="Foreground Image 5">
+            <div class="emoji-container">
+                <div class="emoji" onclick="animateEmoji(this)">😊</div>
+                <div class="emoji" onclick="animateEmoji(this)">❤️</div>
+                <div class="emoji" onclick="animateEmoji(this)">⚾</div>
+                <div class="emoji" onclick="animateEmoji(this)">👍</div>
+            </div>
+        </div>
+        <div class="section" id="section6">
+            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/Foreground/image_6.png" alt="Foreground Image 6">
+            <div class="emoji-container">
+                <div class="emoji" onclick="animateEmoji(this)">😊</div>
+                <div class="emoji" onclick="animateEmoji(this)">❤️</div>
+                <div class="emoji" onclick="animateEmoji(this)">⚾</div>
+                <div class="emoji" onclick="animateEmoji(this)">👍</div>
+            </div>
+        </div>
+        <div class="section" id="section7">
+            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/Foreground/image_7.png" alt="Foreground Image 7">
+            <div class="emoji-container">
+                <div class="emoji" onclick="animateEmoji(this)">😊</div>
+                <div class="emoji" onclick="animateEmoji(this)">❤️</div>
+                <div class="emoji" onclick="animateEmoji(this)">⚾</div>
+                <div class="emoji" onclick="animateEmoji(this)">👍</div>
+            </div>
+        </div>
+        <div class="section" id="section8">
+            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/Foreground/image_8.png" alt="Foreground Image 8">
+            <div class="emoji-container">
+                <div class="emoji" onclick="animateEmoji(this)">😊</div>
+                <div class="emoji" onclick="animateEmoji(this)">❤️</div>
+                <div class="emoji" onclick="animateEmoji(this)">⚾</div>
+                <div class="emoji" onclick="animateEmoji(this)">👍</div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function animateEmoji(emoji) {
+            const section = emoji.parentElement.parentElement;
+            const emojiRect = emoji.getBoundingClientRect();
+            const sectionRect = section.getBoundingClientRect();
+            const offsetX = emojiRect.left - sectionRect.left;
+            const offsetY = sectionRect.bottom - emojiRect.bottom;
+
+            const animatedEmoji = document.createElement('div');
+            animatedEmoji.classList.add('animated-emoji');
+            animatedEmoji.style.left = `${offsetX}px`;
+            animatedEmoji.style.bottom = `${offsetY}px`;
+            animatedEmoji.textContent = emoji.textContent;
+            section.appendChild(animatedEmoji);
+
+            setTimeout(() => {
+                animatedEmoji.remove();
+            }, 1000); // Animation duration
+        }
+
+        document.getElementById('container').addEventListener('scroll', function() {
+            const scrollTop = this.scrollTop;
+            document.getElementById('background').style.transform = `translateY(${-scrollTop * 0.1667}px)`; // 1/6 speed
+        });
+    </script>
+</body>
+</html>
