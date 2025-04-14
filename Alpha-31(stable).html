@@ -8,7 +8,7 @@
         body, html {
             margin: 0;
             padding: 0;
-            overflow: hidden;
+            overflow: hidden; /* Hide scrollbar */
             font-family: Arial, sans-serif;
             background-color: black; /* Set background color to black */
         }
@@ -40,6 +40,10 @@
             height: 100vh;
             scroll-snap-type: y mandatory;
             overflow-y: scroll;
+            scrollbar-width: none; /* Hide scrollbar for Firefox */
+        }
+        .container::-webkit-scrollbar {
+            display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
         }
         .section {
             scroll-snap-align: start;
@@ -68,7 +72,7 @@
         }
         .emoji-container {
             position: fixed;
-            bottom: 10px;
+            bottom: 90px; /* Moved up by another 20px */
             left: 50%;
             transform: translateX(-50%);
             display: flex;
@@ -115,76 +119,102 @@
         .hidden {
             display: none;
         }
+        .emoji-bar {
+            position: fixed;
+            bottom: 70px; /* Lowered by 20px */
+            left: 0;
+            width: 100%;
+            height: calc(6rem + 50px); /* 50px taller than emojis */
+            background-color: rgba(0, 0, 0, 0.5); /* 50% translucent black */
+            z-index: 2; /* Ensure bar is below emojis */
+        }
+        .carousel-image {
+            position: absolute;
+            transition: transform 0.5s ease-in-out;
+        }
+        .slide-out-left {
+            transform: translateX(-100%);
+        }
+        .slide-in-right {
+            transform: translateX(100%);
+        }
+        .slide-out-right {
+            transform: translateX(100%);
+        }
+        .slide-in-left {
+            transform: translateX(-100%);
+        }
     </style>
 </head>
 <body>
     <div class="background" id="background">
-        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/01.png" alt="Background Image 1">
-        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/02.png" alt="Background Image 2">
-        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/03.png" alt="Background Image 3">
-        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/04.png" alt="Background Image 4">
-        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/05.png" alt="Background Image 5">
-        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/06.png" alt="Background Image 6">
-        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/07.png" alt="Background Image 7">
-        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/08.png" alt="Background Image 8">
-        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/09.png" alt="Background Image 9">
-        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/10.png" alt="Background Image 10">
-        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/11.png" alt="Background Image 11">
-        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/12.png" alt="Background Image 12">
-        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/13.png" alt="Background Image 13">
-        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/14.png" alt="Background Image 14">
-        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/15.png" alt="Background Image 15">
-        <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/16.png" alt="Background Image 16">
+        <img src="../../Ohtani_Images/01.png" alt="Background Image 1">
+        <img src="../../Ohtani_Images/02.png" alt="Background Image 2">
+        <img src="../../Ohtani_Images/03.png" alt="Background Image 3">
+        <img src="../../Ohtani_Images/04.png" alt="Background Image 4">
+        <img src="../../Ohtani_Images/05.png" alt="Background Image 5">
+        <img src="../../Ohtani_Images/06.png" alt="Background Image 6">
+        <img src="../../Ohtani_Images/07.png" alt="Background Image 7">
+        <img src="../../Ohtani_Images/08.png" alt="Background Image 8">
+        <img src="../../Ohtani_Images/09.png" alt="Background Image 9">
+        <img src="../../Ohtani_Images/10.png" alt="Background Image 10">
+        <img src="../../Ohtani_Images/11.png" alt="Background Image 11">
+        <img src="../../Ohtani_Images/12.png" alt="Background Image 12">
+        <img src="../../Ohtani_Images/13.png" alt="Background Image 13">
+        <img src="../../Ohtani_Images/14.png" alt="Background Image 14">
+        <img src="../../Ohtani_Images/15.png" alt="Background Image 15">
+        <img src="../../Ohtani_Images/16.png" alt="Background Image 16">
     </div>
     <div class="container" id="container">
         <div class="section" id="section1">
-            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/Foreground/image_1.png" alt="Foreground Image 1" class="carousel-image">
-            <div class="arrow arrow-right">&#9654;</div>
+            <img src="../../Ohtani_Images/Foreground/image_1.png" alt="Foreground Image 1" class="carousel-image" id="carousel-image">
+            <div class="arrow arrow-right" onclick="nextImage()">&#9654;</div>
+            <div class="arrow arrow-left" onclick="prevImage()">&#9664;</div>
         </div>
         <div class="spacer" id="spacer1">
-            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/spacer.png" alt="Spacer">
+            <img src="../../Ohtani_Images/spacer.png" alt="Spacer">
         </div>
-        <div class="section hidden" id="section2">
-            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/Foreground/image_2.png" alt="Foreground Image 2" class="carousel-image">
-            <div class="arrow arrow-left">&#9664;</div>
+        <div class="section" id="section2">
+            <img src="../../Ohtani_Images/Foreground/image_2.png" alt="Foreground Image 2" class="carousel-image">
         </div>
         <div class="spacer" id="spacer2">
-            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/spacer.png" alt="Spacer">
+            <img src="../../Ohtani_Images/spacer.png" alt="Spacer">
         </div>
         <div class="section" id="section3">
-            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/Foreground/image_3.png" alt="Foreground Image 3">
+            <img src="../../Ohtani_Images/Foreground/image_3.png" alt="Foreground Image 3">
         </div>
         <div class="spacer" id="spacer3">
-            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/spacer.png" alt="Spacer">
+            <img src="../../Ohtani_Images/spacer.png" alt="Spacer">
         </div>
         <div class="section" id="section4">
-            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/Foreground/image_4.png" alt="Foreground Image 4">
+            <img src="../../Ohtani_Images/Foreground/image_4.png" alt="Foreground Image 4">
         </div>
         <div class="spacer" id="spacer4">
-            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/spacer.png" alt="Spacer">
+            <img src="../../Ohtani_Images/spacer.png" alt="Spacer">
         </div>
         <div class="section" id="section5">
-            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/Foreground/image_5.png" alt="Foreground Image 5">
+            <img src="../../Ohtani_Images/Foreground/image_5.png" alt="Foreground Image 5">
         </div>
         <div class="spacer" id="spacer5">
-            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/spacer.png" alt="Spacer">
+            <img src="../../Ohtani_Images/spacer.png" alt="Spacer">
         </div>
         <div class="section" id="section6">
-            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/Foreground/image_6.png" alt="Foreground Image 6">
+            <img src="../../Ohtani_Images/Foreground/image_6.png" alt="Foreground Image 6">
         </div>
         <div class="spacer" id="spacer6">
-            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/spacer.png" alt="Spacer">
+            <img src="../../Ohtani_Images/spacer.png" alt="Spacer">
         </div>
         <div class="section" id="section7">
-            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/Foreground/image_7.png" alt="Foreground Image 7">
+            <img src="../../Ohtani_Images/Foreground/image_7.png" alt="Foreground Image 7">
         </div>
         <div class="spacer" id="spacer7">
-            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/spacer.png" alt="Spacer">
+            <img src="../../Ohtani_Images/spacer.png" alt="Spacer">
         </div>
         <div class="section" id="section8">
-            <img src="file:///C:/Users/Pam%20Brandt/Desktop/Local%20Project%20Files/NBHoF/Prototyping/Ohtani_Images/Foreground/image_8.png" alt="Foreground Image 8">
+            <img src="../../Ohtani_Images/Foreground/image_8.png" alt="Foreground Image 8">
         </div>
     </div>
+    <div class="emoji-bar"></div>
     <div class="emoji-container">
         <div class="emoji" onclick="animateEmoji(this)">😊</div>
         <div class="emoji" onclick="animateEmoji(this)">❤️</div>
@@ -216,6 +246,11 @@
 
         let touchstartX = 0;
         let touchendX = 0;
+        let currentImageIndex = 0;
+        const images = [
+            "../../Ohtani_Images/Foreground/image_1.png",
+            "../../Ohtani_Images/Foreground/image_2.png"
+        ];
 
         document.addEventListener('touchstart', function(event) {
             touchstartX = event.changedTouches[0].screenX;
@@ -236,34 +271,42 @@
         }
 
         function nextImage() {
-            const currentSection = document.querySelector('.section:not(.hidden)');
-            const nextSection = currentSection.nextElementSibling;
-            const nextSpacer = nextSection ? nextSection.nextElementSibling : null;
+            const carouselImage = document.getElementById('carousel-image');
+            const newImage = document.createElement('img');
+            newImage.src = images[(currentImageIndex + 1) % images.length];
+            newImage.classList.add('carousel-image', 'slide-in-right');
+            document.getElementById('section1').appendChild(newImage);
 
-            if (nextSpacer && nextSpacer.classList.contains('spacer')) {
-                currentSection.classList.add('hidden');
-                nextSpacer.scrollIntoView({ behavior: 'smooth' });
-                setTimeout(() => {
-                    nextSection.scrollIntoView({ behavior: 'smooth' });
-                    nextSection.classList.remove('hidden');
-                }, 5000); // 1000ms pause
-            }
+            carouselImage.classList.add('slide-out-left');
+            setTimeout(() => {
+                carouselImage.remove();
+                newImage.classList.remove('slide-in-right');
+                newImage.id = 'carousel-image';
+                currentImageIndex = (currentImageIndex + 1) % images.length;
+            }, 500);
         }
 
         function prevImage() {
-            const currentSection = document.querySelector('.section:not(.hidden)');
-            const prevSpacer = currentSection.previousElementSibling;
-            const prevSection = prevSpacer ? prevSpacer.previousElementSibling : null;
+            const carouselImage = document.getElementById('carousel-image');
+            const newImage = document.createElement('img');
+            newImage.src = images[(currentImageIndex - 1 + images.length) % images.length];
+            newImage.classList.add('carousel-image', 'slide-in-left');
+            document.getElementById('section1').appendChild(newImage);
 
-            if (prevSpacer && prevSpacer.classList.contains('spacer')) {
-                currentSection.classList.add('hidden');
-                prevSpacer.scrollIntoView({ behavior: 'smooth' });
-                setTimeout(() => {
-                    prevSection.scrollIntoView({ behavior: 'smooth' });
-                    prevSection.classList.remove('hidden');
-                }, 5000); // 1000ms pause
-            }
+            carouselImage.classList.add('slide-out-right');
+            setTimeout(() => {
+                carouselImage.remove();
+                newImage.classList.remove('slide-in-left');
+                newImage.id = 'carousel-image';
+                currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+            }, 500);
         }
+
+        document.getElementById('container').addEventListener('scroll', function() {
+            const scrollTop = this.scrollTop;
+            const carouselImage = document.getElementById('carousel-image');
+            carouselImage.style.transform = 'translateX(0)'; // Reset transform on scroll
+        });
     </script>
 </body>
 </html>
