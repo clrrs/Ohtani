@@ -103,12 +103,19 @@
         /* Swipe up image */
         .swipe-up {
             position: absolute;
-            bottom: 80px; /* Move up by 40px */
+            bottom: 80px;
             left: 40px;
             width: 250px;
             height: auto;
             z-index: 10;
-            transition: transform 0.8s ease;
+            transition: all 0.5s ease;
+            opacity: 0;
+            transform: translateY(100px);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-30px); }
         }
     </style>
         <script>
@@ -298,12 +305,37 @@
             function handleVideoPlayback(entries) {
                 entries.forEach(entry => {
                     const video = entry.target.querySelector('video');
+                    const swipeUp = entry.target.querySelector('.swipe-up');
                     if (video) {
                         if (entry.isIntersecting) {
+                            video.currentTime = 0;
                             video.play();
-                            console.log(`▶️ Playing video in node: ${entry.target.id}`);
+                            swipeUp.style.opacity = '0';
+                            swipeUp.style.transform = 'translateY(100px)';
+                            swipeUp.style.animation = 'none';
+                            
+                            // Show swipe prompt graphic after video duration
+                            const nodeId = entry.target.id;
+                            const nodeIndex = parseInt(nodeId.replace('node', '')) - 1;
+                            const durations = [12000, 17000, 21000, 21000, 10000];
+                            const duration = durations[nodeIndex];
+                            
+                            console.log(`⏱️ Setting timer for ${nodeId}: ${duration}ms`);
+                            
+                            setTimeout(() => {
+                                console.log(`🎬 Showing swipe prompt for ${nodeId}`);
+                                swipeUp.style.opacity = '1';
+                                swipeUp.style.transform = 'translateY(0)';
+                                swipeUp.style.animation = 'bounce 2s infinite';
+                            }, duration);
+                            
+                            console.log(`▶️ Playing video in node: ${nodeId}`);
                         } else {
                             video.pause();
+                            video.currentTime = 0;
+                            swipeUp.style.opacity = '0';
+                            swipeUp.style.transform = 'translateY(100px)';
+                            swipeUp.style.animation = 'none';
                             console.log(`⏸️ Pausing video in node: ${entry.target.id}`);
                         }
                     }
@@ -371,7 +403,7 @@
         <div class="container">
             <!-- Node 1 -->
             <div class="node" id="node1">
-                <video src="Content/Slide_01.mp4" muted playsinline class="node-content"></video>
+                <video src="Content/Slide_01.mp4" playsinline loop class="node-content"></video>
                 <div class="emoji-container">
                     <!-- Reorder emojis -->
                     <div class="emoji" onclick="incrementCounter(this)">
@@ -392,7 +424,7 @@
     
             <!-- Node 2 -->
             <div class="node" id="node2">
-                <video src="Content/Slide_02.mp4" muted playsinline class="node-content"></video>
+                <video src="Content/Slide_02.mp4" playsinline loop class="node-content"></video>
                 <div class="emoji-container">
                     <div class="emoji" onclick="incrementCounter(this)">
                         <img src="Content/Emojis/Emoji_1.png" alt="Emoji 1">
@@ -412,7 +444,7 @@
     
             <!-- Node 3 -->
             <div class="node" id="node3">
-                <video src="Content/Slide_03.mp4" muted playsinline class="node-content"></video>
+                <video src="Content/Slide_03.mp4" playsinline loop class="node-content"></video>
                 <div class="emoji-container">
                     <div class="emoji" onclick="incrementCounter(this)">
                         <img src="Content/Emojis/Emoji_1.png" alt="Emoji 1">
@@ -432,7 +464,7 @@
     
             <!-- Node 4 -->
             <div class="node" id="node4">
-                <video src="Content/Slide_04.mp4" muted playsinline class="node-content"></video>
+                <video src="Content/Slide_04.mp4" playsinline loop class="node-content"></video>
                 <div class="emoji-container">
                     <div class="emoji" onclick="incrementCounter(this)">
                         <img src="Content/Emojis/Emoji_1.png" alt="Emoji 1">
