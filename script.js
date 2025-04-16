@@ -15,6 +15,7 @@ let backgroundSpeed = 0;
 let isAccelerating = false;
 let lock = false;
 let inactivityTimer = null;
+let swipeUpTimers = new Map();
 
 // DOM Elements
 const container = document.querySelector('.container');
@@ -143,15 +144,29 @@ function handleVideoPlayback(entries) {
                 video.play();
                 hideSwipeUp(swipeUp);
                 
+                // Skip swipe up for last node
                 const nodeId = entry.target.id;
-                const nodeIndex = parseInt(nodeId.replace('node', '')) - 1;
-                const duration = VIDEO_DURATIONS[nodeIndex];
-                
-                setTimeout(() => showSwipeUp(swipeUp), duration);
+                const nodeIndex = parseInt(nodeId.replace('node', ''));
+                if (nodeIndex !== 5) {
+                    // Clear any existing timer for this video
+                    if (swipeUpTimers.has(video)) {
+                        clearTimeout(swipeUpTimers.get(video));
+                    }
+                    
+                    // Set new timer
+                    const timer = setTimeout(() => showSwipeUp(swipeUp), 22000);
+                    swipeUpTimers.set(video, timer);
+                }
             } else {
                 video.pause();
                 video.currentTime = 0;
                 hideSwipeUp(swipeUp);
+                
+                // Clear timer when video goes out of view
+                if (swipeUpTimers.has(video)) {
+                    clearTimeout(swipeUpTimers.get(video));
+                    swipeUpTimers.delete(video);
+                }
             }
         }
     });
