@@ -22,26 +22,6 @@ const backgroundGrid = document.querySelector('.background-grid');
 const nodes = document.querySelectorAll('.node');
 
 // ===== Background Management =====
-function populateBackgroundGrid() {
-    const grid = document.querySelector('.background-grid');
-    if (!grid) return;
-
-    const imagePaths = Array.from({length: 27}, (_, i) => `Content/Background/${String(i + 1).padStart(2, '0')}.png`);
-    
-    // Add images twice for seamless scrolling
-    imagePaths.forEach(path => {
-        const img = document.createElement('img');
-        img.src = path;
-        grid.appendChild(img);
-    });
-    
-    imagePaths.forEach(path => {
-        const img = document.createElement('img');
-        img.src = path;
-        grid.appendChild(img);
-    });
-}
-
 function updateBackgroundPosition() {
     if (!backgroundGrid) return;
     
@@ -261,7 +241,6 @@ function initialize() {
     nodes.forEach(node => observer.observe(node));
     
     // Initialize content
-    populateBackgroundGrid();
     randomizeCounters();
     // Reset background position to top
     backgroundPosition = 0;
