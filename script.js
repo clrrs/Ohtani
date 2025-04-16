@@ -1,9 +1,11 @@
 // Constants
 const NODE_COUNT = 5;
-const BACKGROUND_SPEED = 12.0;
+const BACKGROUND_SPEED = 15.0;
 const LOCKOUT_DURATION = 3500;
 const INACTIVITY_TIMEOUT = 30000;
 const VIDEO_DURATIONS = [12000, 17000, 21000, 21000, 10000];
+const BACKGROUND_ANIMATION_DURATION = 400;
+const MIN_SWIPE_DISTANCE = 50;
 
 // State
 let lastTouchY = 0;
@@ -19,26 +21,13 @@ const container = document.querySelector('.container');
 const backgroundGrid = document.querySelector('.background-grid');
 const nodes = document.querySelectorAll('.node');
 
-// Background Animation
+// ===== Background Management =====
 function populateBackgroundGrid() {
     const grid = document.querySelector('.background-grid');
-    if (!grid) {
-        console.error("❌ Background grid not found.");
-        return;
-    }
+    if (!grid) return;
 
-    const imagePaths = [
-        'Content/Background/01.png', 'Content/Background/02.png', 'Content/Background/03.png', 
-        'Content/Background/04.png', 'Content/Background/05.png', 'Content/Background/06.png', 
-        'Content/Background/07.png', 'Content/Background/08.png', 'Content/Background/09.png', 
-        'Content/Background/10.png', 'Content/Background/11.png', 'Content/Background/12.png', 
-        'Content/Background/13.png', 'Content/Background/14.png', 'Content/Background/15.png', 
-        'Content/Background/16.png', 'Content/Background/17.png', 'Content/Background/18.png', 
-        'Content/Background/19.png', 'Content/Background/20.png', 'Content/Background/21.png', 
-        'Content/Background/22.png', 'Content/Background/23.png', 'Content/Background/24.png', 
-        'Content/Background/25.png', 'Content/Background/26.png', 'Content/Background/27.png'
-    ];
-
+    const imagePaths = Array.from({length: 27}, (_, i) => `Content/Background/${String(i + 1).padStart(2, '0')}.png`);
+    
     // Add images twice for seamless scrolling
     imagePaths.forEach(path => {
         const img = document.createElement('img');
@@ -77,7 +66,20 @@ function accelerateBackground() {
     }, 800);
 }
 
-// Navigation
+// ===== Touch Area Management =====
+function isTouchInVideoArea(x, y) {
+    const videoElements = document.querySelectorAll('.node-content');
+    for (const video of videoElements) {
+        const rect = video.getBoundingClientRect();
+        if (x >= rect.left && x <= rect.right && 
+            y >= rect.top && y <= rect.bottom) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// ===== Navigation =====
 function showNode(index) {
     if (index >= 0 && index < NODE_COUNT) {
         const targetNode = nodes[index];
@@ -92,7 +94,7 @@ function showNode(index) {
     }
 }
 
-// Event Handlers
+// ===== Event Handlers =====
 function handleSwipe(event) {
     if (lock) {
         event.preventDefault();
@@ -100,37 +102,58 @@ function handleSwipe(event) {
     }
     
     lock = true;
-    const direction = Math.sign(event.deltaY);
+    const swipeDistance = event.deltaY;
+    const direction = swipeDistance > 0 ? 1 : -1;
     const nextNodeIndex = currentNodeIndex + direction;
     
     if (nextNodeIndex >= 0 && nextNodeIndex < NODE_COUNT) {
         showNode(nextNodeIndex);
-        accelerateBackground();
+        backgroundSpeed = direction > 0 ? BACKGROUND_SPEED : -BACKGROUND_SPEED;
+        setTimeout(() => {
+            backgroundSpeed = 0;
+        }, BACKGROUND_ANIMATION_DURATION);
     }
     
     setTimeout(() => lock = false, LOCKOUT_DURATION);
 }
 
 function handleTouchStart(event) {
-    lastTouchY = event.touches[0].clientY;
+    const touchX = event.touches[0].clientX;
+    const touchY = event.touches[0].clientY;
+    
+    if (isTouchInVideoArea(touchX, touchY)) {
+        lastTouchY = event.touches[0].clientY;
+    } else {
+        event.preventDefault();
+    }
 }
 
 function handleTouchEnd(event) {
+    const touchX = event.changedTouches[0].clientX;
+    const touchY = event.changedTouches[0].clientY;
+    
+    if (!isTouchInVideoArea(touchX, touchY)) {
+        return;
+    }
+    
     const touchEndY = event.changedTouches[0].clientY;
     const swipeDistance = lastTouchY - touchEndY;
     
-    if (Math.abs(swipeDistance) > 50) {
+    if (Math.abs(swipeDistance) > MIN_SWIPE_DISTANCE) {
         const direction = swipeDistance > 0 ? 1 : -1;
         const nextNodeIndex = currentNodeIndex + direction;
         
         if (nextNodeIndex >= 0 && nextNodeIndex < NODE_COUNT) {
             showNode(nextNodeIndex);
-            accelerateBackground();
+            backgroundSpeed = direction > 0 ? BACKGROUND_SPEED : -BACKGROUND_SPEED;
+            setTimeout(() => {
+                backgroundSpeed = 0;
+            }, BACKGROUND_ANIMATION_DURATION);
         }
     }
 }
 
-// Video Management
+// ===== Video Management =====
 function handleVideoPlayback(entries) {
     entries.forEach(entry => {
         const video = entry.target.querySelector('video');
@@ -172,7 +195,7 @@ function showSwipeUp(element) {
     }
 }
 
-// Emoji Management
+// ===== Emoji Management =====
 function randomizeCounters() {
     const emojis = document.querySelectorAll('.emoji');
     emojis.forEach(emoji => {
@@ -219,11 +242,11 @@ function spawnEmoji(emoji) {
     }
 }
 
-// Initialization
+// ===== Initialization =====
 function initialize() {
     // Setup event listeners
     document.addEventListener('wheel', handleSwipe, { passive: false });
-    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchstart', handleTouchStart, { passive: false });
     document.addEventListener('touchend', handleTouchEnd, { passive: true });
     
     // Setup emoji click handlers
@@ -239,7 +262,7 @@ function initialize() {
     
     nodes.forEach(node => observer.observe(node));
     
-    // Initialize background and start animations
+    // Initialize content
     populateBackgroundGrid();
     randomizeCounters();
     updateBackgroundPosition();
