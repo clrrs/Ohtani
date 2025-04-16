@@ -20,6 +20,39 @@ const backgroundGrid = document.querySelector('.background-grid');
 const nodes = document.querySelectorAll('.node');
 
 // Background Animation
+function populateBackgroundGrid() {
+    const grid = document.querySelector('.background-grid');
+    if (!grid) {
+        console.error("❌ Background grid not found.");
+        return;
+    }
+
+    const imagePaths = [
+        'Content/Background/01.png', 'Content/Background/02.png', 'Content/Background/03.png', 
+        'Content/Background/04.png', 'Content/Background/05.png', 'Content/Background/06.png', 
+        'Content/Background/07.png', 'Content/Background/08.png', 'Content/Background/09.png', 
+        'Content/Background/10.png', 'Content/Background/11.png', 'Content/Background/12.png', 
+        'Content/Background/13.png', 'Content/Background/14.png', 'Content/Background/15.png', 
+        'Content/Background/16.png', 'Content/Background/17.png', 'Content/Background/18.png', 
+        'Content/Background/19.png', 'Content/Background/20.png', 'Content/Background/21.png', 
+        'Content/Background/22.png', 'Content/Background/23.png', 'Content/Background/24.png', 
+        'Content/Background/25.png', 'Content/Background/26.png', 'Content/Background/27.png'
+    ];
+
+    // Add images twice for seamless scrolling
+    imagePaths.forEach(path => {
+        const img = document.createElement('img');
+        img.src = path;
+        grid.appendChild(img);
+    });
+    
+    imagePaths.forEach(path => {
+        const img = document.createElement('img');
+        img.src = path;
+        grid.appendChild(img);
+    });
+}
+
 function updateBackgroundPosition() {
     if (!backgroundGrid) return;
     
@@ -190,7 +223,8 @@ function initialize() {
     
     nodes.forEach(node => observer.observe(node));
     
-    // Start animations
+    // Initialize background and start animations
+    populateBackgroundGrid();
     updateBackgroundPosition();
     showNode(0);
 }
