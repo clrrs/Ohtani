@@ -215,7 +215,7 @@ function spawnEmoji(emoji) {
             
             emojiClone.style.position = "fixed";
             emojiClone.style.bottom = "0";
-            emojiClone.style.left = `${Math.random() * (window.innerWidth - 100)}px`;
+            emojiClone.style.left = `${(window.innerWidth * 0.75) + Math.random() * (window.innerWidth * 0.25 - 100)}px`;
             emojiClone.style.transition = "transform 2.6s ease, opacity 2.6s ease";
             emojiClone.style.transform = "translateY(0) rotate(0deg)";
             emojiClone.style.opacity = "1";
@@ -224,7 +224,8 @@ function spawnEmoji(emoji) {
             document.body.appendChild(emojiClone);
             
             setTimeout(() => {
-                emojiClone.style.transform = `translateY(-${window.innerHeight * 2}px) rotate(180deg)`;
+                const rotation = Math.random() > 0.5 ? 360 : -360;
+                emojiClone.style.transform = `translateY(-${window.innerHeight * 2}px) rotate(${rotation}deg)`;
                 emojiClone.style.opacity = "0";
             }, 50);
             
