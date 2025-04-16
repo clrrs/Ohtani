@@ -173,6 +173,14 @@ function showSwipeUp(element) {
 }
 
 // Emoji Management
+function randomizeCounters() {
+    const emojis = document.querySelectorAll('.emoji');
+    emojis.forEach(emoji => {
+        const counter = emoji.querySelector('.emoji-counter');
+        counter.textContent = Math.floor(Math.random() * (856 - 223 + 1)) + 223;
+    });
+}
+
 function incrementCounter(emoji) {
     const counter = emoji.querySelector('.emoji-counter');
     counter.textContent = parseInt(counter.textContent) + 1;
@@ -180,8 +188,9 @@ function incrementCounter(emoji) {
 }
 
 function spawnEmoji(emoji) {
-    const emojiCount = Math.floor(Math.random() * 8) + 8;
-    
+    const emojiCount = Math.floor(Math.random() * (15 - 8 + 1)) + 8;
+    let delay = 0;
+
     for (let i = 0; i < emojiCount; i++) {
         setTimeout(() => {
             const emojiClone = emoji.cloneNode(true);
@@ -191,7 +200,7 @@ function spawnEmoji(emoji) {
             emojiClone.style.position = "fixed";
             emojiClone.style.bottom = "0";
             emojiClone.style.left = `${Math.random() * (window.innerWidth - 100)}px`;
-            emojiClone.style.transition = `transform ${VIDEO_DURATIONS[0]}ms ease, opacity ${VIDEO_DURATIONS[0]}ms ease`;
+            emojiClone.style.transition = "transform 2.6s ease, opacity 2.6s ease";
             emojiClone.style.transform = "translateY(0) rotate(0deg)";
             emojiClone.style.opacity = "1";
             emojiClone.style.zIndex = "20";
@@ -203,8 +212,10 @@ function spawnEmoji(emoji) {
                 emojiClone.style.opacity = "0";
             }, 50);
             
-            setTimeout(() => emojiClone.remove(), VIDEO_DURATIONS[0] + 50);
-        }, i * 75);
+            setTimeout(() => emojiClone.remove(), 2650);
+        }, delay);
+
+        delay += 75;
     }
 }
 
@@ -214,6 +225,11 @@ function initialize() {
     document.addEventListener('wheel', handleSwipe, { passive: false });
     document.addEventListener('touchstart', handleTouchStart, { passive: true });
     document.addEventListener('touchend', handleTouchEnd, { passive: true });
+    
+    // Setup emoji click handlers
+    document.querySelectorAll('.emoji').forEach(emoji => {
+        emoji.addEventListener('click', () => incrementCounter(emoji));
+    });
     
     // Setup video observer
     const observer = new IntersectionObserver(handleVideoPlayback, {
@@ -225,6 +241,7 @@ function initialize() {
     
     // Initialize background and start animations
     populateBackgroundGrid();
+    randomizeCounters();
     updateBackgroundPosition();
     showNode(0);
 }
