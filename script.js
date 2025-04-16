@@ -112,6 +112,9 @@ function handleTouchStart(event) {
     
     // Allow touch on any node, not just video areas
     lastTouchY = event.touches[0].clientY;
+    
+    // Reset inactivity timer
+    resetInactivityTimer();
 }
 
 function handleTouchEnd(event) {
@@ -130,6 +133,41 @@ function handleTouchEnd(event) {
             }, BACKGROUND_ANIMATION_DURATION);
         }
     }
+    
+    // Reset inactivity timer
+    resetInactivityTimer();
+}
+
+function resetInactivityTimer() {
+    if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+    }
+    inactivityTimer = setTimeout(() => {
+        // Fade out
+        document.body.style.backgroundColor = 'white';
+        document.getElementById('root').classList.add('fade-out');
+        
+        // After fade out, reset and fade in
+        setTimeout(() => {
+            showNode(0);
+            backgroundPosition = 0;
+            backgroundGrid.style.transform = `translateY(0px)`;
+            container.scrollTo({
+                top: 0,
+                behavior: 'instant'
+            });
+            
+            // Fade in
+            document.body.style.backgroundColor = '';
+            document.getElementById('root').classList.remove('fade-out');
+            document.getElementById('root').classList.add('fade-in');
+            
+            // Remove fade-in class after transition
+            setTimeout(() => {
+                document.getElementById('root').classList.remove('fade-in');
+            }, 1000);
+        }, 1000);
+    }, INACTIVITY_TIMEOUT);
 }
 
 // ===== Video Management =====
@@ -245,7 +283,10 @@ function initialize() {
     
     // Setup emoji click handlers
     document.querySelectorAll('.emoji').forEach(emoji => {
-        emoji.addEventListener('click', () => incrementCounter(emoji));
+        emoji.addEventListener('click', () => {
+            incrementCounter(emoji);
+            resetInactivityTimer();
+        });
     });
     
     // Setup video observer
@@ -263,6 +304,9 @@ function initialize() {
     backgroundGrid.style.transform = `translateY(0px)`;
     updateBackgroundPosition();
     showNode(0);
+    
+    // Start inactivity timer
+    resetInactivityTimer();
 }
 
 // Start the application
