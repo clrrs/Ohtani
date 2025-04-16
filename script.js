@@ -1,9 +1,9 @@
 // Constants
-const NODE_COUNT = 5;
+const NODE_COUNT = 6;
 const BACKGROUND_SPEED = 15.0;
 const LOCKOUT_DURATION = 3500;
 const INACTIVITY_TIMEOUT = 30000;
-const VIDEO_DURATIONS = [12000, 17000, 21000, 21000, 10000];
+const VIDEO_DURATIONS = [0, 12000, 17000, 21000, 21000, 10000];
 const BACKGROUND_ANIMATION_DURATION = 400;
 const MIN_SWIPE_DISTANCE = 50;
 
@@ -44,6 +44,11 @@ function populateBackgroundGrid() {
 
 function updateBackgroundPosition() {
     if (!backgroundGrid) return;
+    
+    // Reset background position when on first node
+    if (currentNodeIndex === 0) {
+        backgroundPosition = 0;
+    }
     
     backgroundPosition -= backgroundSpeed;
     backgroundGrid.style.transform = `translateY(${backgroundPosition}px)`;
@@ -91,6 +96,9 @@ function showNode(index) {
         });
         
         currentNodeIndex = index;
+        
+        // Reset background speed when changing nodes
+        backgroundSpeed = 0;
     }
 }
 
@@ -121,21 +129,11 @@ function handleTouchStart(event) {
     const touchX = event.touches[0].clientX;
     const touchY = event.touches[0].clientY;
     
-    if (isTouchInVideoArea(touchX, touchY)) {
-        lastTouchY = event.touches[0].clientY;
-    } else {
-        event.preventDefault();
-    }
+    // Allow touch on any node, not just video areas
+    lastTouchY = event.touches[0].clientY;
 }
 
 function handleTouchEnd(event) {
-    const touchX = event.changedTouches[0].clientX;
-    const touchY = event.changedTouches[0].clientY;
-    
-    if (!isTouchInVideoArea(touchX, touchY)) {
-        return;
-    }
-    
     const touchEndY = event.changedTouches[0].clientY;
     const swipeDistance = lastTouchY - touchEndY;
     
@@ -265,6 +263,9 @@ function initialize() {
     // Initialize content
     populateBackgroundGrid();
     randomizeCounters();
+    // Reset background position to top
+    backgroundPosition = 0;
+    backgroundGrid.style.transform = `translateY(0px)`;
     updateBackgroundPosition();
     showNode(0);
 }
