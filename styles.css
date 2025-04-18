@@ -129,6 +129,8 @@ body {
     cursor: pointer;
     flex-shrink: 0;
     position: relative;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 .emoji img {
