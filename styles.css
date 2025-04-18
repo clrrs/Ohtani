@@ -84,14 +84,26 @@ body {
     right: 0;
     margin: 0 auto;
     width: 90%;
-    height: 100vh;
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--grid-gap);
+    overflow: hidden;
     z-index: 0;
+    height: 100vh;
+    pointer-events: none; /* Allow clicks to pass through */
 }
+
+/* Each column is a container for its images */
+.grid-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--grid-gap);
+    will-change: transform;
+    position: relative;
+}
+
 .background-grid img {
-    width: calc(33.33% - 100px);
+    width: 100%;
     height: auto;
     aspect-ratio: 1 / 1;
     object-fit: cover;

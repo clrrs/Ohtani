@@ -7,15 +7,19 @@ const VIDEO_DURATIONS = [0, 12000, 17000, 21000, 21000, 10000];
 const BACKGROUND_ANIMATION_DURATION = 400;
 const MIN_SWIPE_DISTANCE = 50;
 
+// Background Animation Constants
+const COLUMN_COUNT = 3; // Number of columns in the grid
+const COLUMN_SPEEDS = [0.5, 0.8, 0.3]; // Speed for each column (all positive = upward movement)
+
 // State
 let lastTouchY = 0;
 let currentNodeIndex = 0;
-let backgroundPosition = 0;
-let backgroundSpeed = 0;
+let columnPositions = [0, 0, 0]; // Current Y position of each column
 let isAccelerating = false;
 let lock = false;
 let inactivityTimer = null;
 let swipeUpTimers = new Map();
+let animationFrameId = null; // ID of current animation frame
 
 // DOM Elements
 const container = document.querySelector('.container');
@@ -23,23 +27,78 @@ const backgroundGrid = document.querySelector('.background-grid');
 const nodes = document.querySelectorAll('.node');
 const initialSwipe = document.querySelector('.initial-swipe');
 
-// ===== Background Management =====
-function updateBackgroundPosition() {
+console.log('Background Grid Element:', backgroundGrid); // Debug log
+
+// ===== Background Animation =====
+function initBackgroundAnimation() {
+    // Get all images from the grid
+    const images = Array.from(backgroundGrid.querySelectorAll('img'));
+    const imagesPerColumn = Math.ceil(images.length / COLUMN_COUNT);
+    
+    // Clear existing grid
+    backgroundGrid.innerHTML = '';
+    
+    // Create columns and distribute images
+    for (let i = 0; i < COLUMN_COUNT; i++) {
+        const columnDiv = document.createElement('div');
+        columnDiv.className = `grid-column column-${i}`;
+        
+        // Add first set of images to column
+        for (let j = 0; j < imagesPerColumn; j++) {
+            const imgIndex = i + (j * COLUMN_COUNT);
+            if (images[imgIndex]) {
+                columnDiv.appendChild(images[imgIndex].cloneNode(true));
+            }
+        }
+        
+        // Add duplicate images for seamless looping
+        for (let j = 0; j < imagesPerColumn; j++) {
+            const imgIndex = i + (j * COLUMN_COUNT);
+            if (images[imgIndex]) {
+                columnDiv.appendChild(images[imgIndex].cloneNode(true));
+            }
+        }
+        
+        backgroundGrid.appendChild(columnDiv);
+    }
+    
+    // Start the animation
+    startBackgroundAnimation();
+}
+
+// Start or restart the background animation
+function startBackgroundAnimation() {
+    // Cancel any existing animation
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+    }
+    animateBackground();
+}
+
+// Main animation loop
+function animateBackground() {
     if (!backgroundGrid) return;
     
-    // Reset background position when on first node
-    if (currentNodeIndex === 0) {
-        backgroundPosition = 0;
-    }
+    const columns = Array.from(backgroundGrid.children);
     
-    backgroundPosition -= backgroundSpeed;
-    backgroundGrid.style.transform = `translateY(${backgroundPosition}px)`;
+    columns.forEach((column, index) => {
+        // Update column position based on its speed
+        columnPositions[index] -= COLUMN_SPEEDS[index];
+        
+        // Get height of one set of images (half of total height since we have duplicates)
+        const columnHeight = column.offsetHeight / 2;
+        
+        // Reset position when scrolled past one full height
+        if (Math.abs(columnPositions[index]) >= columnHeight) {
+            columnPositions[index] = 0;
+        }
+        
+        // Apply transform to move column
+        column.style.transform = `translateY(${columnPositions[index]}px)`;
+    });
     
-    if (backgroundPosition <= -window.innerHeight) {
-        backgroundPosition = 0;
-    }
-    
-    requestAnimationFrame(updateBackgroundPosition);
+    // Schedule next frame
+    animationFrameId = requestAnimationFrame(animateBackground);
 }
 
 function accelerateBackground() {
@@ -160,8 +219,8 @@ function resetInactivityTimer() {
         // After fade out, reset and fade in
         setTimeout(() => {
             showNode(0);
-            backgroundPosition = 0;
-            backgroundGrid.style.transform = `translateY(0px)`;
+            columnPositions = [0, 0, 0];
+            animateBackground();
             container.scrollTo({
                 top: 0,
                 behavior: 'instant'
@@ -286,6 +345,8 @@ function spawnEmoji(emoji) {
 
 // ===== Initialization =====
 function initialize() {
+    console.log('Starting initialization...'); // Debug log
+    
     // Setup event listeners
     document.addEventListener('wheel', handleSwipe, { passive: false });
     document.addEventListener('touchstart', handleTouchStart, { passive: false });
@@ -309,14 +370,13 @@ function initialize() {
     
     // Initialize content
     randomizeCounters();
-    // Reset background position to top
-    backgroundPosition = 0;
-    backgroundGrid.style.transform = `translateY(0px)`;
-    updateBackgroundPosition();
+    initBackgroundAnimation(); // Initialize and start background animation
     showNode(0);
     
     // Start inactivity timer
     resetInactivityTimer();
+    
+    console.log('Initialization complete'); // Debug log
 }
 
 // Start the application
