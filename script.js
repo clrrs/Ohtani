@@ -1,5 +1,5 @@
 // Constants
-const NODE_COUNT = 6;
+const NODE_COUNT = 7;
 const BACKGROUND_SPEED = 15.0;
 const LOCKOUT_DURATION = 3500;
 const INACTIVITY_TIMEOUT = 40000; // Time before the screen fades out
@@ -9,7 +9,7 @@ const MIN_SWIPE_DISTANCE = 50;
 
 // Background Animation Constants
 const COLUMN_COUNT = 3; // Number of columns in the grid
-const COLUMN_SPEEDS = [0.5, 0.8, 0.3]; // Base speed for each column (all positive = upward movement)
+const COLUMN_SPEEDS = [0.5, 0.7, 0.3]; // Base speed for each column (all positive = upward movement)
 const SPEED_BOOST_MULTIPLIER = 100; // How much faster during swipe
 const SPEED_TRANSITION_DURATION = 2000; // How long to return to normal speed (ms)
 
@@ -207,8 +207,10 @@ function handleTouchStart(event) {
     // Allow touch on any node, not just video areas
     lastTouchY = event.touches[0].clientY;
     
-    // Reset inactivity timer
-    resetInactivityTimer();
+    // Only reset inactivity timer if we're not on node 0
+    if (currentNodeIndex !== 0) {
+        resetInactivityTimer();
+    }
 }
 
 function handleTouchEnd(event) {
@@ -219,18 +221,47 @@ function handleTouchEnd(event) {
         const direction = swipeDistance > 0 ? 1 : -1;
         const nextNodeIndex = currentNodeIndex + direction;
         
-        if (nextNodeIndex >= 0 && nextNodeIndex < NODE_COUNT) {
+        // If we're on node 5 and swiping up, first go to node 6 then reset
+        if (currentNodeIndex === 5 && direction === 1) {
+            showNode(6);
+            
+            // After a short delay, trigger the reset
+            setTimeout(() => {
+                document.body.style.backgroundColor = 'white';
+                document.getElementById('root').classList.add('fade-out');
+                
+                setTimeout(() => {
+                    showNode(0);
+                    columnPositions = [0, 0, 0];
+                    animateBackground();
+                    container.scrollTo({
+                        top: 0,
+                        behavior: 'instant'
+                    });
+                    
+                    document.body.style.backgroundColor = '';
+                    document.getElementById('root').classList.remove('fade-out');
+                    document.getElementById('root').classList.add('fade-in');
+                    
+                    setTimeout(() => {
+                        document.getElementById('root').classList.remove('fade-in');
+                    }, 1000);
+                }, 1000);
+            }, 500); // Short delay to show node 6
+        } else if (nextNodeIndex >= 0 && nextNodeIndex < NODE_COUNT) {
             showNode(nextNodeIndex);
             
             // Activate speed boost for both upward and downward swipes
             isSpeedBoosted = true;
             isDownwardSwipe = direction < 0;
             speedBoostStartTime = Date.now();
+            
+            // Only set inactivity timer if we're not on node 0
+            if (nextNodeIndex !== 0) {
+                resetInactivityTimer();
+            }
         }
     }
-    
-    // Reset inactivity timer
-    resetInactivityTimer();
 }
 
 function resetInactivityTimer() {
@@ -238,7 +269,7 @@ function resetInactivityTimer() {
         clearTimeout(inactivityTimer);
     }
     
-    // Don't set timer if we're on the attract screen
+    // Don't set timer if we're on the first node
     if (currentNodeIndex === 0) return;
     
     inactivityTimer = setTimeout(() => {
@@ -387,7 +418,10 @@ function initialize() {
     document.querySelectorAll('.emoji').forEach(emoji => {
         emoji.addEventListener('click', () => {
             incrementCounter(emoji);
-            resetInactivityTimer();
+            // Only reset inactivity timer if we're not on node 0
+            if (currentNodeIndex !== 0) {
+                resetInactivityTimer();
+            }
         });
     });
     
@@ -404,8 +438,6 @@ function initialize() {
     initBackgroundAnimation(); // Initialize and start background animation
     showNode(0);
     
-    // Start inactivity timer
-    resetInactivityTimer();
     
     console.log('Initialization complete'); // Debug log
 }
