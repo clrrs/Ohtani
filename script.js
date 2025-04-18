@@ -2,7 +2,7 @@
 const NODE_COUNT = 6;
 const BACKGROUND_SPEED = 15.0;
 const LOCKOUT_DURATION = 3500;
-const INACTIVITY_TIMEOUT = 30000;
+const INACTIVITY_TIMEOUT = 40000; // Time before the screen fades out
 const VIDEO_DURATIONS = [0, 12000, 17000, 21000, 21000, 10000];
 const BACKGROUND_ANIMATION_DURATION = 400;
 const MIN_SWIPE_DISTANCE = 50;
@@ -283,8 +283,9 @@ function handleVideoPlayback(entries) {
                         clearTimeout(swipeUpTimers.get(video));
                     }
                     
-                    // Set new timer
-                    const timer = setTimeout(() => showSwipeUp(swipeUp), 22000);
+                    // Set new timer based on the video duration
+                    const videoDuration = VIDEO_DURATIONS[nodeIndex];
+                    const timer = setTimeout(() => showSwipeUp(swipeUp), videoDuration);
                     swipeUpTimers.set(video, timer);
                 }
             } else {
