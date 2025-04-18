@@ -24,6 +24,7 @@ let swipeUpTimers = new Map();
 let animationFrameId = null; // ID of current animation frame
 let isSpeedBoosted = false; // Whether we're currently in speed boost mode
 let speedBoostStartTime = 0; // When the speed boost started
+let isDownwardSwipe = false; // Whether we're currently in a downward swipe
 
 // DOM Elements
 const container = document.querySelector('.container');
@@ -85,13 +86,15 @@ function getCurrentSpeed(index) {
     const elapsed = Date.now() - speedBoostStartTime;
     if (elapsed >= SPEED_TRANSITION_DURATION) {
         isSpeedBoosted = false;
+        isDownwardSwipe = false;
         return COLUMN_SPEEDS[index];
     }
     
     // Ease out the speed boost
     const progress = 1 - (elapsed / SPEED_TRANSITION_DURATION);
     const boostAmount = (SPEED_BOOST_MULTIPLIER - 1) * progress;
-    return COLUMN_SPEEDS[index] * (1 + boostAmount);
+    const speed = COLUMN_SPEEDS[index] * (1 + boostAmount);
+    return isDownwardSwipe ? -speed : speed;
 }
 
 // Main animation loop
@@ -108,8 +111,14 @@ function animateBackground() {
         const columnHeight = column.offsetHeight / 2;
         
         // Reset position when scrolled past one full height
-        if (Math.abs(columnPositions[index]) >= columnHeight) {
-            columnPositions[index] = 0;
+        if (isDownwardSwipe) {
+            if (columnPositions[index] > 0) {
+                columnPositions[index] = -columnHeight;
+            }
+        } else {
+            if (Math.abs(columnPositions[index]) >= columnHeight) {
+                columnPositions[index] = 0;
+            }
         }
         
         // Apply transform to move column
@@ -182,11 +191,10 @@ function handleSwipe(event) {
     if (nextNodeIndex >= 0 && nextNodeIndex < NODE_COUNT) {
         showNode(nextNodeIndex);
         
-        // Activate speed boost only on upward swipes
-        if (direction > 0) {
-            isSpeedBoosted = true;
-            speedBoostStartTime = Date.now();
-        }
+        // Activate speed boost for both upward and downward swipes
+        isSpeedBoosted = true;
+        isDownwardSwipe = direction < 0;
+        speedBoostStartTime = Date.now();
     }
     
     setTimeout(() => lock = false, LOCKOUT_DURATION);
@@ -214,11 +222,10 @@ function handleTouchEnd(event) {
         if (nextNodeIndex >= 0 && nextNodeIndex < NODE_COUNT) {
             showNode(nextNodeIndex);
             
-            // Activate speed boost only on upward swipes
-            if (direction > 0) {
-                isSpeedBoosted = true;
-                speedBoostStartTime = Date.now();
-            }
+            // Activate speed boost for both upward and downward swipes
+            isSpeedBoosted = true;
+            isDownwardSwipe = direction < 0;
+            speedBoostStartTime = Date.now();
         }
     }
     
