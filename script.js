@@ -21,6 +21,7 @@ let swipeUpTimers = new Map();
 const container = document.querySelector('.container');
 const backgroundGrid = document.querySelector('.background-grid');
 const nodes = document.querySelectorAll('.node');
+const initialSwipe = document.querySelector('.initial-swipe');
 
 // ===== Background Management =====
 function updateBackgroundPosition() {
@@ -77,6 +78,11 @@ function showNode(index) {
         });
         
         currentNodeIndex = index;
+        
+        // Show/hide initial swipe up based on node
+        if (initialSwipe) {
+            initialSwipe.style.opacity = index === 0 ? '1' : '0';
+        }
         
         // Reset background speed when changing nodes
         backgroundSpeed = 0;
