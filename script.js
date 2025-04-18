@@ -193,7 +193,10 @@ function handleSwipe(event) {
     const nextNodeIndex = currentNodeIndex + direction;
     
     if (nextNodeIndex >= 0 && nextNodeIndex < NODE_COUNT) {
-        playSound(swipeSound);
+        // Only play sound if not swiping down on first node
+        if (!(currentNodeIndex === 0 && direction === -1)) {
+            playSound(swipeSound);
+        }
         showNode(nextNodeIndex);
         
         // Activate speed boost for both upward and downward swipes
@@ -223,9 +226,13 @@ function handleTouchEnd(event) {
     const swipeDistance = lastTouchY - touchEndY;
     
     if (Math.abs(swipeDistance) > MIN_SWIPE_DISTANCE) {
-        playSound(swipeSound);
         const direction = swipeDistance > 0 ? 1 : -1;
         const nextNodeIndex = currentNodeIndex + direction;
+        
+        // Only play sound if not swiping down on first node
+        if (!(currentNodeIndex === 0 && direction === -1)) {
+            playSound(swipeSound);
+        }
         
         // If we're on node 5 and swiping up, first go to node 6 then reset
         if (currentNodeIndex === 5 && direction === 1) {
