@@ -3,418 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Museum Interactive Display</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            font-family: Arial, sans-serif;
-            background-color: white;
-        }
-
-        /* Main container */
-        .container {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            scroll-snap-type: y mandatory;
-            overflow-y: scroll;
-            scrollbar-width: none;
-            scroll-behavior: smooth;
-        }
-        .container::-webkit-scrollbar { display: none; }
-
-        /* Node sections */
-        .node {
-            scroll-snap-align: start;
-            flex: 0 0 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            justify-content: flex-start;
-            position: relative;
-            width: 100vw;
-            overflow: hidden;
-            z-index: 1;
-            margin-bottom: 1600px;
-        }
-
-        .node-content {
-            width: 100vw;
-            height: auto;
-            object-fit: contain;
-        }
-
-        /* Background grid */
-        .background-grid {
-            position: fixed;
-            top: 0;
-            left: 12px; /* Inset by 12px from the left */
-            width: calc(100vw - 24px); /* Adjust width to account for left and right insets */
-            height: 100vh;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 30px;
-            z-index: 0;
-            transform: translateY(0);
-        }
-        .background-grid img {
-            width: calc(33.33% - 20px);
-            height: auto;
-            aspect-ratio: 1 / 1;
-            object-fit: cover;
-        }
-
-        /* Emoji bar */
-        .emoji-container {
-            position: absolute;
-            right: 25px;
-            bottom: 150px; /* Move up by 20px */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 10px;
-            z-index: 6;
-            gap: 30px;
-        }
-        .emoji {
-            width: 97.5px;
-            height: 97.5px;
-            cursor: pointer;
-            flex-shrink: 0;
-            position: relative;
-        }
-        .emoji img {
-            width: 100%;
-            height: 100%;
-        }
-        .emoji-counter {
-            position: absolute;
-            bottom: -33px;
-            font-size: 2rem;
-            font-weight: bold;
-            color: black;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        /* Swipe up image */
-        .swipe-up {
-            position: absolute;
-            bottom: 80px;
-            left: 40px;
-            width: 250px;
-            height: auto;
-            z-index: 10;
-            transition: all 0.5s ease;
-            opacity: 0;
-            transform: translateY(100px);
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-30px); }
-        }
-    </style>
-        <script>
-            console.log("🚀 Script Loaded: Initializing background animation and interaction handlers.");
-    
-            let lastTouchY = 0;
-            let currentNodeIndex = 0;
-            let backgroundPosition = 0;
-            let backgroundSpeed = 0; // Ensure initial speed is set to 0
-            let isAccelerating = false;
-            let throttleTimeout = null;
-            let inactivityTimer = null; // Timer to track inactivity
-    
-            function updateBackgroundPosition() {
-                const grid = document.querySelector('.background-grid');
-                if (!grid) return;
-    
-                backgroundPosition -= backgroundSpeed;
-                grid.style.transform = `translateY(${backgroundPosition}px)`;
-    
-                if (backgroundPosition <= -window.innerHeight) {
-                    backgroundPosition = 0;
-                }
-    
-                requestAnimationFrame(updateBackgroundPosition);
-            }
-    
-            function accelerateBackground() {
-                if (isAccelerating) return;
-                isAccelerating = true;
-    
-                const originalSpeed = backgroundSpeed;
-                backgroundSpeed = 12.0; // Fixed acceleration speed
-                console.log(`🚀 Accelerating background speed to: ${backgroundSpeed}px/frame`);
-    
-                setTimeout(() => {
-                    backgroundSpeed = 0; // Return to 0 as intended
-                    console.log(`🔄 Reverting background speed to: ${backgroundSpeed}px/frame`);
-                    isAccelerating = false;
-                }, 800);
-            }
-
-            let isScrolling = false;
-            let lock = false; // Lock to prevent additional events
-
-            function handleSwipe(event) {
-                if (lock) {
-                    console.log("⏳ Lockout active: Ignoring additional wheel events.");
-                    event.preventDefault(); // Prevent default wheel behavior
-                    return; // Ignore events while locked
-                }
-                lock = true; // Lock further events
-
-                const direction = Math.sign(event.deltaY);
-                let nextNodeIndex = currentNodeIndex + direction;
-
-                console.log(`📜 Wheel event detected. Direction: ${direction > 0 ? "Down" : "Up"}`);
-
-                if (nextNodeIndex >= 0 && nextNodeIndex < document.querySelectorAll('.node').length) {
-                    console.log(`🎯 Navigating to node: ${nextNodeIndex}`);
-                    showNode(nextNodeIndex);
-                    accelerateBackground();
-                }
-
-                // Unlock after 3500ms
-                setTimeout(() => {
-                    lock = false;
-                    console.log("🔓 Lockout released: Wheel events are now accepted.");
-                }, 3500); // Extended lockout duration to 3500ms
-            }
-
-            // Ensure event listener is active and prevents default behavior
-            document.addEventListener('wheel', handleSwipe, { passive: false });
-    
-            function showNode(index) {
-                const nodes = document.querySelectorAll('.node');
-                if (index >= 0 && index < nodes.length) {
-                    const targetNode = nodes[index];
-                    const targetPosition = targetNode.offsetTop;
-
-                    // Smooth scroll using window.scrollTo with easing
-                    window.scrollTo({
-                        top: targetPosition,
-                        behavior: 'smooth'
-                    });
-
-                    currentNodeIndex = index;
-                }
-            }
-    
-            function populateBackgroundGrid() {
-                const grid = document.querySelector('.background-grid');
-                if (!grid) {
-                    console.error("❌ Background grid not found.");
-                    return;
-                }
-    
-                const imagePaths = [
-                    'Content/Background/01.png', 'Content/Background/02.png', 'Content/Background/03.png', 
-                    'Content/Background/04.png', 'Content/Background/05.png', 'Content/Background/06.png', 
-                    'Content/Background/07.png', 'Content/Background/08.png', 'Content/Background/09.png', 
-                    'Content/Background/10.png', 'Content/Background/11.png', 'Content/Background/12.png', 
-                    'Content/Background/13.png', 'Content/Background/14.png', 'Content/Background/15.png', 
-                    'Content/Background/16.png', 'Content/Background/17.png', 'Content/Background/18.png', 
-                    'Content/Background/19.png', 'Content/Background/20.png', 'Content/Background/21.png', 
-                    'Content/Background/22.png', 'Content/Background/23.png', 'Content/Background/24.png', 
-                    'Content/Background/25.png', 'Content/Background/26.png', 'Content/Background/27.png'
-                ];
-
-                imagePaths.forEach(path => {
-                    const img = document.createElement('img');
-                    img.src = path;
-                    grid.appendChild(img);
-                });
-    
-                imagePaths.forEach(path => {
-                    const img = document.createElement('img');
-                    img.src = path;
-                    grid.appendChild(img);
-                });
-            }
-    
-            function incrementCounter(emoji) {
-                const counter = emoji.querySelector('.emoji-counter');
-                counter.textContent = parseInt(counter.textContent) + 1;
-                spawnEmoji(emoji); // Ensure this is called when an emoji is clicked
-            }
-
-            function resetToTop() {
-                console.log("🔄 Resetting to the top due to inactivity.");
-                showNode(0);
-            }
-    
-            function resetInactivityTimer() {
-                if (inactivityTimer) clearTimeout(inactivityTimer);
-                inactivityTimer = setTimeout(resetToTop, 30000); // Reset after 30 seconds of inactivity
-            }
-    
-            function spawnEmoji(emoji) {
-                const emojiCount = Math.floor(Math.random() * (15 - 8 + 1)) + 8; // Random count between 8 and 15
-                let delay = 0;
-
-                for (let i = 0; i < emojiCount; i++) {
-                    setTimeout(() => {
-                        const emojiClone = emoji.cloneNode(true);
-                        emojiClone.style.position = "fixed";
-                        emojiClone.style.bottom = "0"; // Start at the bottom of the screen
-                        emojiClone.style.left = `${Math.random() * (window.innerWidth - 100)}px`; // Random horizontal position
-                        emojiClone.style.transition = "transform 2.6s ease, opacity 2.6s ease"; // Adjusted duration to 2600ms
-                        emojiClone.style.transform = "translateY(0) rotate(0deg)"; // Initial position and rotation
-                        emojiClone.style.opacity = "1"; // Ensure it's visible
-                        emojiClone.style.zIndex = "20"; // Ensure it appears above other elements
-
-                        // Remove the counter from the animated emoji
-                        const counter = emojiClone.querySelector('.emoji-counter');
-                        if (counter) {
-                            counter.remove();
-                        }
-
-                        document.body.appendChild(emojiClone);
-
-                        // Trigger the animation after a short delay
-                        setTimeout(() => {
-                            emojiClone.style.transform = `translateY(-${window.innerHeight * 2}px) rotate(180deg)`; // Move up and rotate
-                            emojiClone.style.opacity = "0"; // Fade out
-                        }, 50); // Small delay to allow the browser to register the initial position
-
-                        // Remove the emoji after the animation ends
-                        setTimeout(() => {
-                            emojiClone.remove();
-                        }, 2650); // Match the animation duration (2600ms) + small buffer
-                    }, delay);
-
-                    delay += 75; // Increment delay by 75ms for each emoji
-                }
-            }
-    
-            // Randomize counters at the start
-            function randomizeCounters() {
-                const emojis = document.querySelectorAll('.emoji');
-                emojis.forEach(emoji => {
-                    const counter = emoji.querySelector('.emoji-counter');
-                    counter.textContent = Math.floor(Math.random() * (856 - 223 + 1)) + 223; // Corrected range logic
-                });
-            }
-
-            function handleVideoPlayback(entries) {
-                entries.forEach(entry => {
-                    const video = entry.target.querySelector('video');
-                    const swipeUp = entry.target.querySelector('.swipe-up');
-                    if (video) {
-                        if (entry.isIntersecting) {
-                            video.currentTime = 0;
-                            video.play();
-                            swipeUp.style.opacity = '0';
-                            swipeUp.style.transform = 'translateY(100px)';
-                            swipeUp.style.animation = 'none';
-                            
-                            // Show swipe prompt graphic after video duration
-                            const nodeId = entry.target.id;
-                            const nodeIndex = parseInt(nodeId.replace('node', '')) - 1;
-                            const durations = [12000, 17000, 21000, 21000, 10000];
-                            const duration = durations[nodeIndex];
-                            
-                            console.log(`⏱️ Setting timer for ${nodeId}: ${duration}ms`);
-                            
-                            setTimeout(() => {
-                                console.log(`🎬 Showing swipe prompt for ${nodeId}`);
-                                swipeUp.style.opacity = '1';
-                                swipeUp.style.transform = 'translateY(0)';
-                                swipeUp.style.animation = 'bounce 2s infinite';
-                            }, duration);
-                            
-                            console.log(`▶️ Playing video in node: ${nodeId}`);
-                        } else {
-                            video.pause();
-                            video.currentTime = 0;
-                            swipeUp.style.opacity = '0';
-                            swipeUp.style.transform = 'translateY(100px)';
-                            swipeUp.style.animation = 'none';
-                            console.log(`⏸️ Pausing video in node: ${entry.target.id}`);
-                        }
-                    }
-                });
-            }
-        
-            function initializeVideoObserver() {
-                const observer = new IntersectionObserver(handleVideoPlayback, {
-                    root: null, // Use the viewport as the root
-                    threshold: 0.5 // Trigger when 50% of the node is visible
-                });
-        
-                const nodes = document.querySelectorAll('.node');
-                nodes.forEach(node => observer.observe(node));
-            }
-
-            let touchStartY = 0;
-            let touchEndY = 0;
-
-            function handleTouchStart(event) {
-                touchStartY = event.touches[0].clientY;
-            }
-
-            function handleTouchEnd(event) {
-                touchEndY = event.changedTouches[0].clientY;
-                const swipeDistance = touchStartY - touchEndY;
-
-                if (Math.abs(swipeDistance) > 50) { // Minimum swipe distance threshold
-                    const direction = swipeDistance > 0 ? 1 : -1; // Down = 1, Up = -1
-                    let nextNodeIndex = currentNodeIndex + direction;
-
-                    console.log(`📱 Swipe detected. Direction: ${direction > 0 ? "Down" : "Up"}`);
-
-                    if (nextNodeIndex >= 0 && nextNodeIndex < document.querySelectorAll('.node').length) {
-                        console.log(`🎯 Navigating to node: ${nextNodeIndex}`);
-                        showNode(nextNodeIndex);
-                        accelerateBackground();
-                    }
-                }
-            }
-
-            // Add touch event listeners
-            document.addEventListener('touchstart', handleTouchStart, { passive: true });
-            document.addEventListener('touchend', handleTouchEnd, { passive: true });
-    
-            window.onload = function() {
-                console.log("🎬 Initializing system...");
-                populateBackgroundGrid();
-                randomizeCounters(); // Randomize counters on load
-                showNode(0);
-                updateBackgroundPosition();
-                resetInactivityTimer(); // Start inactivity timer
-                initializeVideoObserver(); // Initialize video observer
-            };
-    
-            // Reset inactivity timer on user interaction
-            document.addEventListener('wheel', resetInactivityTimer);
-            document.addEventListener('click', resetInactivityTimer);
-            document.addEventListener('mousemove', resetInactivityTimer);
-            document.addEventListener('keydown', resetInactivityTimer);
-        </script>
-    </head>
-    <body>
-        <div class="background-grid"></div>
+    <title>Ohtani</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="root">
+        <img src="Content/Attract_SwipeUp.png" alt="Attract Swipe Up" class="attract-swipe-up initial-swipe">
+        <div class="background-grid">
+            <!-- First set of images -->
+            <img src="Content/Background/01.png" alt="Background 1">
+            <img src="Content/Background/02.png" alt="Background 2">
+            <img src="Content/Background/03.png" alt="Background 3">
+            <img src="Content/Background/04.png" alt="Background 4">
+            <img src="Content/Background/05.png" alt="Background 5">
+            <img src="Content/Background/06.png" alt="Background 6">
+            <img src="Content/Background/07.png" alt="Background 7">
+            <img src="Content/Background/08.png" alt="Background 8">
+            <img src="Content/Background/09.png" alt="Background 9">
+            <img src="Content/Background/10.png" alt="Background 10">
+            <img src="Content/Background/11.png" alt="Background 11">
+            <img src="Content/Background/12.png" alt="Background 12">
+            <img src="Content/Background/13.png" alt="Background 13">
+            <img src="Content/Background/14.png" alt="Background 14">
+            <img src="Content/Background/15.png" alt="Background 15">
+            <img src="Content/Background/16.png" alt="Background 16">
+            <img src="Content/Background/17.png" alt="Background 17">
+            <img src="Content/Background/18.png" alt="Background 18">
+            <img src="Content/Background/19.png" alt="Background 19">
+            <img src="Content/Background/20.png" alt="Background 20">
+            <img src="Content/Background/21.png" alt="Background 21">
+            <img src="Content/Background/22.png" alt="Background 22">
+            <img src="Content/Background/23.png" alt="Background 23">
+            <img src="Content/Background/24.png" alt="Background 24">
+            <img src="Content/Background/25.png" alt="Background 25">
+            <img src="Content/Background/26.png" alt="Background 26">
+            <img src="Content/Background/27.png" alt="Background 27">
+            <!-- Second set for seamless scrolling -->
+            <img src="Content/Background/01.png" alt="Background 1">
+            <img src="Content/Background/02.png" alt="Background 2">
+            <img src="Content/Background/03.png" alt="Background 3">
+            <img src="Content/Background/04.png" alt="Background 4">
+            <img src="Content/Background/05.png" alt="Background 5">
+            <img src="Content/Background/06.png" alt="Background 6">
+            <img src="Content/Background/07.png" alt="Background 7">
+            <img src="Content/Background/08.png" alt="Background 8">
+            <img src="Content/Background/09.png" alt="Background 9">
+            <img src="Content/Background/10.png" alt="Background 10">
+            <img src="Content/Background/11.png" alt="Background 11">
+            <img src="Content/Background/12.png" alt="Background 12">
+            <img src="Content/Background/13.png" alt="Background 13">
+            <img src="Content/Background/14.png" alt="Background 14">
+            <img src="Content/Background/15.png" alt="Background 15">
+            <img src="Content/Background/16.png" alt="Background 16">
+            <img src="Content/Background/17.png" alt="Background 17">
+            <img src="Content/Background/18.png" alt="Background 18">
+            <img src="Content/Background/19.png" alt="Background 19">
+            <img src="Content/Background/20.png" alt="Background 20">
+            <img src="Content/Background/21.png" alt="Background 21">
+            <img src="Content/Background/22.png" alt="Background 22">
+            <img src="Content/Background/23.png" alt="Background 23">
+            <img src="Content/Background/24.png" alt="Background 24">
+            <img src="Content/Background/25.png" alt="Background 25">
+            <img src="Content/Background/26.png" alt="Background 26">
+            <img src="Content/Background/27.png" alt="Background 27">
+        </div>
         <div class="container">
+            <!-- Attract Screen -->
+            <div class="node" id="node0">
+                <div class="node-content"></div>
+            </div>
+
             <!-- Node 1 -->
             <div class="node" id="node1">
                 <video src="Content/Slide_01.mp4" playsinline loop class="node-content"></video>
                 <div class="emoji-container">
-                    <!-- Reorder emojis -->
-                    <div class="emoji" onclick="incrementCounter(this)">
+                    <div class="emoji" data-emoji="3">
                         <img src="Content/Emojis/Emoji_3.png" alt="Emoji 3">
                         <div class="emoji-counter">0</div>
                     </div>
-                    <div class="emoji" onclick="incrementCounter(this)">
+                    <div class="emoji" data-emoji="1">
                         <img src="Content/Emojis/Emoji_1.png" alt="Emoji 1">
                         <div class="emoji-counter">0</div>
                     </div>
-                    <div class="emoji" onclick="incrementCounter(this)">
+                    <div class="emoji" data-emoji="2">
                         <img src="Content/Emojis/Emoji_2.png" alt="Emoji 2">
                         <div class="emoji-counter">0</div>
                     </div>
@@ -426,15 +97,15 @@
             <div class="node" id="node2">
                 <video src="Content/Slide_02.mp4" playsinline loop class="node-content"></video>
                 <div class="emoji-container">
-                    <div class="emoji" onclick="incrementCounter(this)">
+                    <div class="emoji" data-emoji="1">
                         <img src="Content/Emojis/Emoji_1.png" alt="Emoji 1">
                         <div class="emoji-counter">0</div>
                     </div>
-                    <div class="emoji" onclick="incrementCounter(this)">
+                    <div class="emoji" data-emoji="2">
                         <img src="Content/Emojis/Emoji_2.png" alt="Emoji 2">
                         <div class="emoji-counter">0</div>
                     </div>
-                    <div class="emoji" onclick="incrementCounter(this)">
+                    <div class="emoji" data-emoji="3">
                         <img src="Content/Emojis/Emoji_3.png" alt="Emoji 3">
                         <div class="emoji-counter">0</div>
                     </div>
@@ -446,15 +117,15 @@
             <div class="node" id="node3">
                 <video src="Content/Slide_03.mp4" playsinline loop class="node-content"></video>
                 <div class="emoji-container">
-                    <div class="emoji" onclick="incrementCounter(this)">
+                    <div class="emoji" data-emoji="1">
                         <img src="Content/Emojis/Emoji_1.png" alt="Emoji 1">
                         <div class="emoji-counter">0</div>
                     </div>
-                    <div class="emoji" onclick="incrementCounter(this)">
+                    <div class="emoji" data-emoji="2">
                         <img src="Content/Emojis/Emoji_2.png" alt="Emoji 2">
                         <div class="emoji-counter">0</div>
                     </div>
-                    <div class="emoji" onclick="incrementCounter(this)">
+                    <div class="emoji" data-emoji="3">
                         <img src="Content/Emojis/Emoji_3.png" alt="Emoji 3">
                         <div class="emoji-counter">0</div>
                     </div>
@@ -466,15 +137,15 @@
             <div class="node" id="node4">
                 <video src="Content/Slide_04.mp4" playsinline loop class="node-content"></video>
                 <div class="emoji-container">
-                    <div class="emoji" onclick="incrementCounter(this)">
+                    <div class="emoji" data-emoji="1">
                         <img src="Content/Emojis/Emoji_1.png" alt="Emoji 1">
                         <div class="emoji-counter">0</div>
                     </div>
-                    <div class="emoji" onclick="incrementCounter(this)">
+                    <div class="emoji" data-emoji="2">
                         <img src="Content/Emojis/Emoji_2.png" alt="Emoji 2">
                         <div class="emoji-counter">0</div>
                     </div>
-                    <div class="emoji" onclick="incrementCounter(this)">
+                    <div class="emoji" data-emoji="3">
                         <img src="Content/Emojis/Emoji_3.png" alt="Emoji 3">
                         <div class="emoji-counter">0</div>
                     </div>
@@ -486,22 +157,29 @@
             <div class="node" id="node5">
                 <img src="Content/Slide_05.png" alt="Slide 5" class="node-content">
                 <div class="emoji-container">
-                    <div class="emoji" onclick="incrementCounter(this)">
+                    <div class="emoji" data-emoji="1">
                         <img src="Content/Emojis/Emoji_1.png" alt="Emoji 1">
                         <div class="emoji-counter">0</div>
                     </div>
-                    <div class="emoji" onclick="incrementCounter(this)">
+                    <div class="emoji" data-emoji="2">
                         <img src="Content/Emojis/Emoji_2.png" alt="Emoji 2">
                         <div class="emoji-counter">0</div>
                     </div>
-                    <div class="emoji" onclick="incrementCounter(this)">
+                    <div class="emoji" data-emoji="3">
                         <img src="Content/Emojis/Emoji_3.png" alt="Emoji 3">
                         <div class="emoji-counter">0</div>
                     </div>
                 </div>
                 <img src="Content/Swipe_up.png" alt="Swipe up" class="swipe-up">
             </div>
+
+            <!-- Node 6 (Empty node for reset) -->
+            <div class="node" id="node6">
+                <div class="node-content"></div>
+            </div>
         </div>
-    </body>
-    </html>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
 
