@@ -410,6 +410,7 @@ function spawnEmoji(emoji) {
             emojiClone.style.transform = "translateY(0) rotate(0deg)";
             emojiClone.style.opacity = "1";
             emojiClone.style.zIndex = "20";
+            emojiClone.style.pointerEvents = "none";
             
             document.body.appendChild(emojiClone);
             
@@ -440,6 +441,10 @@ function initialize() {
         emoji.addEventListener('click', () => {
             playSound(tapSound);
             incrementCounter(emoji);
+            // Trigger pulse animation
+            //emoji.style.animation = 'none';
+            //emoji.offsetHeight; // Force reflow
+            //emoji.style.animation = 'pulse 0.3s ease';
             // Only reset inactivity timer if we're not on node 0
             if (currentNodeIndex !== 0) {
                 resetInactivityTimer();

@@ -131,6 +131,10 @@ body {
     position: relative;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    /* animation: pulse 0.3s ease; */
+    &:active {
+        animation: pulse 0.3s ease;
+    }
 }
 
 .emoji img {
@@ -164,6 +168,12 @@ body {
 @keyframes bounce {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-30px); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
 }
 
 .fade-out {
