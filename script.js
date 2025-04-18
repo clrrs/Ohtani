@@ -404,7 +404,7 @@ function spawnEmoji(emoji) {
             if (counter) counter.remove();
             
             emojiClone.style.position = "fixed";
-            emojiClone.style.bottom = "0";
+            emojiClone.style.bottom = "-100px";
             emojiClone.style.left = `${(window.innerWidth * 0.75) + Math.random() * (window.innerWidth * 0.25 - 100)}px`;
             emojiClone.style.transition = "transform 2.6s ease, opacity 2.6s ease";
             emojiClone.style.transform = "translateY(0) rotate(0deg)";
