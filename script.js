@@ -148,6 +148,10 @@ function resetInactivityTimer() {
     if (inactivityTimer) {
         clearTimeout(inactivityTimer);
     }
+    
+    // Don't set timer if we're on the attract screen
+    if (currentNodeIndex === 0) return;
+    
     inactivityTimer = setTimeout(() => {
         // Fade out
         document.body.style.backgroundColor = 'white';
