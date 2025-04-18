@@ -9,7 +9,9 @@ const MIN_SWIPE_DISTANCE = 50;
 
 // Background Animation Constants
 const COLUMN_COUNT = 3; // Number of columns in the grid
-const COLUMN_SPEEDS = [0.5, 0.8, 0.3]; // Speed for each column (all positive = upward movement)
+const COLUMN_SPEEDS = [0.5, 0.8, 0.3]; // Base speed for each column (all positive = upward movement)
+const SPEED_BOOST_MULTIPLIER = 100; // How much faster during swipe
+const SPEED_TRANSITION_DURATION = 2000; // How long to return to normal speed (ms)
 
 // State
 let lastTouchY = 0;
@@ -20,6 +22,8 @@ let lock = false;
 let inactivityTimer = null;
 let swipeUpTimers = new Map();
 let animationFrameId = null; // ID of current animation frame
+let isSpeedBoosted = false; // Whether we're currently in speed boost mode
+let speedBoostStartTime = 0; // When the speed boost started
 
 // DOM Elements
 const container = document.querySelector('.container');
@@ -68,11 +72,26 @@ function initBackgroundAnimation() {
 
 // Start or restart the background animation
 function startBackgroundAnimation() {
-    // Cancel any existing animation
     if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
     }
     animateBackground();
+}
+
+// Get current speed for a column, accounting for speed boost
+function getCurrentSpeed(index) {
+    if (!isSpeedBoosted) return COLUMN_SPEEDS[index];
+    
+    const elapsed = Date.now() - speedBoostStartTime;
+    if (elapsed >= SPEED_TRANSITION_DURATION) {
+        isSpeedBoosted = false;
+        return COLUMN_SPEEDS[index];
+    }
+    
+    // Ease out the speed boost
+    const progress = 1 - (elapsed / SPEED_TRANSITION_DURATION);
+    const boostAmount = (SPEED_BOOST_MULTIPLIER - 1) * progress;
+    return COLUMN_SPEEDS[index] * (1 + boostAmount);
 }
 
 // Main animation loop
@@ -82,8 +101,8 @@ function animateBackground() {
     const columns = Array.from(backgroundGrid.children);
     
     columns.forEach((column, index) => {
-        // Update column position based on its speed
-        columnPositions[index] -= COLUMN_SPEEDS[index];
+        // Update column position based on its current speed
+        columnPositions[index] -= getCurrentSpeed(index);
         
         // Get height of one set of images (half of total height since we have duplicates)
         const columnHeight = column.offsetHeight / 2;
@@ -162,10 +181,12 @@ function handleSwipe(event) {
     
     if (nextNodeIndex >= 0 && nextNodeIndex < NODE_COUNT) {
         showNode(nextNodeIndex);
-        backgroundSpeed = direction > 0 ? BACKGROUND_SPEED : -BACKGROUND_SPEED;
-        setTimeout(() => {
-            backgroundSpeed = 0;
-        }, BACKGROUND_ANIMATION_DURATION);
+        
+        // Activate speed boost only on upward swipes
+        if (direction > 0) {
+            isSpeedBoosted = true;
+            speedBoostStartTime = Date.now();
+        }
     }
     
     setTimeout(() => lock = false, LOCKOUT_DURATION);
@@ -192,10 +213,12 @@ function handleTouchEnd(event) {
         
         if (nextNodeIndex >= 0 && nextNodeIndex < NODE_COUNT) {
             showNode(nextNodeIndex);
-            backgroundSpeed = direction > 0 ? BACKGROUND_SPEED : -BACKGROUND_SPEED;
-            setTimeout(() => {
-                backgroundSpeed = 0;
-            }, BACKGROUND_ANIMATION_DURATION);
+            
+            // Activate speed boost only on upward swipes
+            if (direction > 0) {
+                isSpeedBoosted = true;
+                speedBoostStartTime = Date.now();
+            }
         }
     }
     
