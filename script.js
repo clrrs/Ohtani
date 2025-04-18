@@ -13,6 +13,10 @@ const COLUMN_SPEEDS = [0.5, 0.7, 0.3]; // Base speed for each column (all positi
 const SPEED_BOOST_MULTIPLIER = 100; // How much faster during swipe
 const SPEED_TRANSITION_DURATION = 2000; // How long to return to normal speed (ms)
 
+// Add after constants
+const swipeSound = new Audio('Content/Sounds/swipe.mp3');
+const tapSound = new Audio('Content/Sounds/tap.mp3');
+
 // State
 let lastTouchY = 0;
 let currentNodeIndex = 0;
@@ -189,6 +193,7 @@ function handleSwipe(event) {
     const nextNodeIndex = currentNodeIndex + direction;
     
     if (nextNodeIndex >= 0 && nextNodeIndex < NODE_COUNT) {
+        playSound(swipeSound);
         showNode(nextNodeIndex);
         
         // Activate speed boost for both upward and downward swipes
@@ -218,6 +223,7 @@ function handleTouchEnd(event) {
     const swipeDistance = lastTouchY - touchEndY;
     
     if (Math.abs(swipeDistance) > MIN_SWIPE_DISTANCE) {
+        playSound(swipeSound);
         const direction = swipeDistance > 0 ? 1 : -1;
         const nextNodeIndex = currentNodeIndex + direction;
         
@@ -425,6 +431,7 @@ function initialize() {
     // Setup emoji click handlers
     document.querySelectorAll('.emoji').forEach(emoji => {
         emoji.addEventListener('click', () => {
+            playSound(tapSound);
             incrementCounter(emoji);
             // Only reset inactivity timer if we're not on node 0
             if (currentNodeIndex !== 0) {
@@ -451,4 +458,10 @@ function initialize() {
 }
 
 // Start the application
-window.onload = initialize; 
+window.onload = initialize;
+
+// Add before initialize()
+function playSound(sound) {
+    sound.currentTime = 0;
+    sound.play().catch(err => console.warn('Audio play failed:', err));
+} 
