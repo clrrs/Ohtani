@@ -9,7 +9,7 @@ const MIN_SWIPE_DISTANCE = 50;
 
 // Background Animation Constants
 const COLUMN_COUNT = 3; // Number of columns in the grid
-const COLUMN_SPEEDS = [0.5, 0.7, 0.3]; // Base speed for each column (all positive = upward movement)
+const COLUMN_SPEEDS = [0.5, 0.7, 0.2]; // Base speed for each column (all positive = upward movement)
 const SPEED_BOOST_MULTIPLIER = 100; // How much faster during swipe
 const SPEED_TRANSITION_DURATION = 2000; // How long to return to normal speed (ms)
 
