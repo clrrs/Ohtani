@@ -103,10 +103,10 @@ body {
     position: relative;
 }
 
+/* Image size and ratio */
 .background-grid img {
     width: 100%;
     height: auto;
-    aspect-ratio: 1 / 1;
     object-fit: cover;
 }
 
