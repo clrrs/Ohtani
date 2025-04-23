@@ -29,6 +29,9 @@ let animationFrameId = null; // ID of current animation frame
 let isSpeedBoosted = false; // Whether we're currently in speed boost mode
 let speedBoostStartTime = 0; // When the speed boost started
 let isDownwardSwipe = false; // Whether we're currently in a downward swipe
+let isTransitioning = false;
+const TRANSITION_DELAY = 1000; // 1 seconds delay
+
 
 // DOM Elements
 const container = document.querySelector('.container');
@@ -159,30 +162,32 @@ function isTouchInVideoArea(x, y) {
 
 // ===== Navigation =====
 function showNode(index) {
-    if (index >= 0 && index < NODE_COUNT) {
-        const targetNode = nodes[index];
-        const targetPosition = targetNode.offsetTop;
-        
-        window.scrollTo({
-            top: targetPosition,
-            behavior: 'smooth'
-        });
-        
-        currentNodeIndex = index;
-        
-        // Show/hide initial swipe up based on node
-        if (initialSwipe) {
-            initialSwipe.style.opacity = index === 0 ? '1' : '0';
-        }
-        
-        // Reset background speed when changing nodes
-        backgroundSpeed = 0;
+    if (isTransitioning || index < 0 || index >= NODE_COUNT) return;
+
+    isTransitioning = true;
+    const current = nodes[currentNodeIndex];
+    const next = nodes[index];
+    const isMovingUp = index > currentNodeIndex;
+    
+    
+    // Set up transition based on direction
+    if (isMovingUp) {
+        current.style.transform = 'translateY(-100vh)';
+    } else {
+        current.style.transform = 'translateY(100vh)';
     }
+    
+    // Move next node into position after delay
+    setTimeout(() => {
+        next.style.transform = 'translateY(0)';
+        isTransitioning = false;
+        currentNodeIndex = index;
+    }, TRANSITION_DELAY);
 }
 
 // ===== Event Handlers =====
 function handleSwipe(event) {
-    if (lock) {
+    if (lock || isTransitioning) {
         event.preventDefault();
         return;
     }
@@ -193,16 +198,12 @@ function handleSwipe(event) {
     const nextNodeIndex = currentNodeIndex + direction;
     
     if (nextNodeIndex >= 0 && nextNodeIndex < NODE_COUNT) {
-        // Only play sound if not swiping down on first node
         if (!(currentNodeIndex === 0 && direction === -1)) {
             playSound(swipeSound);
         }
+        console.log('a');
         showNode(nextNodeIndex);
-        
-        // Activate speed boost for both upward and downward swipes
-        isSpeedBoosted = true;
-        isDownwardSwipe = direction < 0;
-        speedBoostStartTime = Date.now();
+        console.log('b'); 
     }
     
     setTimeout(() => lock = false, LOCKOUT_DURATION);
@@ -323,7 +324,7 @@ function handleVideoPlayback(entries) {
             if (entry.isIntersecting) {
                 video.currentTime = 0;
                 video.play();
-                hideSwipeUp(swipeUp);
+                hideSwipeUpPrompt(swipeUp);
                 
                 // Skip swipe up for last node
                 const nodeId = entry.target.id;
@@ -350,7 +351,7 @@ function handleVideoPlayback(entries) {
             } else {
                 video.pause();
                 video.currentTime = 0;
-                hideSwipeUp(swipeUp);
+                hideSwipeUpPrompt(swipeUp);
                 
                 // Clear timer when video goes out of view
                 if (swipeUpTimers.has(video)) {
@@ -362,7 +363,7 @@ function handleVideoPlayback(entries) {
     });
 }
 
-function hideSwipeUp(element) {
+function hideSwipeUpPrompt(element) {
     if (element) {
         element.style.opacity = '0';
         element.style.transform = 'translateY(100px)';
@@ -465,6 +466,9 @@ function initialize() {
     initBackgroundAnimation(); // Initialize and start background animation
     showNode(0);
     
+    // Set initial active node
+    nodes[0].classList.add('active');
+    nodes[0].classList.remove('next');
     
     console.log('Initialization complete'); // Debug log
 }

@@ -45,31 +45,22 @@ body {
 /* Layout */
 .container {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 300vh;
     height: 100vh;
-    scroll-snap-type: y mandatory;
-    overflow-y: scroll;
-    scrollbar-width: none;
-    scroll-behavior: smooth;
+    overflow: hidden;
 }
-.container::-webkit-scrollbar { display: none; }
 
 /* Node Styles */
 .node {
-    scroll-snap-align: start;
-    flex: 0 0 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-    position: relative;
+    position: absolute;
     width: 100vw;
-    overflow: hidden;
-    z-index: 1;
-    margin-bottom: 100vh;
+    height: 100vh;
+    transition: transform 0.5s ease;
+    will-change: transform;
+    
+    /* Initial state - all nodes pinned to bottom */
+    transform: translateY(100vh);
 }
+
 
 .node-content {
     width: 100vw;
