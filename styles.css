@@ -54,7 +54,7 @@ body {
     position: absolute;
     width: 100vw;
     height: 100vh;
-    transition: transform 0.5s ease;
+    transition: transform 1s ease;
     will-change: transform;
     
     /* Initial state - all nodes pinned to bottom */
@@ -174,3 +174,4 @@ body {
 .fade-in {
     opacity: 1;
 } 
+
