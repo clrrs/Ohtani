@@ -2,7 +2,7 @@
 // These values can be adjusted to change behavior
 const NODE_COUNT = 7; // Total number of nodes (including attract screen and reset node)
 const BACKGROUND_SPEED = 15.0; // Base speed of background animation
-const LOCKOUT_DURATION = 3500; // How long to prevent swipes after a transition (ms)
+const LOCKOUT_DURATION = 2800; // How long to prevent swipes after a transition (ms)
 const INACTIVITY_TIMEOUT = 45000; // Time before screen fades out (ms)
 const VIDEO_DURATIONS = [0, 12000, 17000, 21000, 21000, 10000, 0]; // Duration each video should play (ms)
 const BACKGROUND_ANIMATION_DURATION = 400; // Duration of background animations (ms)
@@ -36,6 +36,9 @@ let speedBoostStartTime = 0;
 let isDownwardSwipe = false;
 let isTransitioning = false;
 let backgroundSpeed = 0;
+let lastInteractionTime = 0;
+let touchStartY = null;
+let isTouchActive = false;
 
 // ===== DOM ELEMENTS =====
 const container = document.querySelector('.container');
@@ -119,56 +122,65 @@ function showNode(index, isReset = false) {
 }
 
 // ===== TOUCH HANDLING =====
-function handleTouchEnd(event) {
-    const touchEndY = event.changedTouches[0].clientY;
-    const swipeDistance = lastTouchY - touchEndY;
+function handleNavigation(distance, eventType) {
+    const now = Date.now();
+    const timeSinceLastInteraction = now - lastInteractionTime;
     
-    if (Math.abs(swipeDistance) > MIN_SWIPE_DISTANCE) {
-        const direction = swipeDistance > 0 ? 1 : -1;
-        const nextNodeIndex = currentNodeIndex + direction;
-        
+    // Enforce lockout period and prevent interaction during transitions
+    if (timeSinceLastInteraction < LOCKOUT_DURATION || isTransitioning) {
+        return false;
+    }
+    
+    const direction = distance > 0 ? 1 : -1;
+    const nextNodeIndex = currentNodeIndex + direction;
+    
+    // Validate navigation is within bounds
+    if (nextNodeIndex >= 0 && nextNodeIndex < NODE_COUNT) {
+        // Don't play sound when trying to swipe down from first node
         if (!(currentNodeIndex === 0 && direction === -1)) {
             playSound(swipeSound);
         }
         
-        if (currentNodeIndex === 5 && direction === 1) {
-            // Trigger reset sequence when swiping up from node 5
-            showNode(6);
-            
-            setTimeout(() => {
-                document.body.style.backgroundColor = 'white';
-                document.getElementById('root').classList.add('fade-out');
-                
-                setTimeout(() => {
-                    resetToNode0();
-                    container.scrollTo({
-                        top: 0,
-                        behavior: 'instant'
-                    });
-                    
-                    document.body.style.backgroundColor = '';
-                    document.getElementById('root').classList.remove('fade-out');
-                    document.getElementById('root').classList.add('fade-in');
-                    
-                    setTimeout(() => {
-                        document.getElementById('root').classList.remove('fade-in');
-                        // Use faster transition for reset
-                        showNode(0, true);
-                    }, FADE_DURATION);
-                }, FADE_DURATION);
-            }, RESET_DELAY);
-        } else if (nextNodeIndex >= 0 && nextNodeIndex < NODE_COUNT) {
-            showNode(nextNodeIndex);
-            
-            isSpeedBoosted = true;
-            isDownwardSwipe = direction < 0;
-            speedBoostStartTime = Date.now();
-            
-            if (nextNodeIndex !== 0) {
-                resetInactivityTimer();
-            }
-        }
+        lastInteractionTime = now;
+        
+        // Trigger background animation speed boost
+        isSpeedBoosted = true;
+        isDownwardSwipe = direction < 0;
+        speedBoostStartTime = now;
+        
+        showNode(nextNodeIndex);
+        return true;
     }
+    
+    return false;
+}
+
+function handleTouchEnd(event) {
+    // Validate touch state and count
+    if (!touchStartY || event.changedTouches.length !== 1) {
+        resetTouchState();
+        return;
+    }
+    
+    const touchEndY = event.changedTouches[0].clientY;
+    const swipeDistance = touchStartY - touchEndY;
+    
+    // Only process clear vertical swipes
+    if (Math.abs(swipeDistance) > MIN_SWIPE_DISTANCE) {
+        handleNavigation(swipeDistance, 'touch');
+    }
+    
+    resetTouchState();
+    event.preventDefault();
+}
+
+function handleTouchCancel() {
+    resetTouchState();
+}
+
+function resetTouchState() {
+    touchStartY = null;
+    isTouchActive = false;
 }
 
 // ===== Background Animation =====
@@ -299,44 +311,16 @@ function isTouchInVideoArea(x, y) {
 }
 
 // ===== Event Handlers =====
-function handleSwipe(event) {
-    console.log('handleSwipe called');
-    console.log('Current state:', { isTransitioning, currentNodeIndex, lock });
-    
-    if (lock || isTransitioning) {
-        console.log('Swipe blocked:', { lock, isTransitioning });
+function handleTouchStart(event) {
+    // Ensure only single touch points are processed
+    if (event.touches.length !== 1 || isTouchActive) {
         event.preventDefault();
         return;
     }
     
-    lock = true;
-    const swipeDistance = event.deltaY;
-    const direction = swipeDistance > 0 ? 1 : -1;
-    const nextNodeIndex = currentNodeIndex + direction;
-    
-    console.log('Swipe details:', { swipeDistance, direction, nextNodeIndex });
-    
-    if (nextNodeIndex >= 0 && nextNodeIndex < NODE_COUNT) {
-        if (!(currentNodeIndex === 0 && direction === -1)) {
-            playSound(swipeSound);
-        }
-        showNode(nextNodeIndex);
-    }
-    
-    setTimeout(() => {
-        lock = false;
-        console.log('Lock released');
-    }, LOCKOUT_DURATION);
-}
-
-function handleTouchStart(event) {
-    const touchX = event.touches[0].clientX;
-    const touchY = event.touches[0].clientY;
-    lastTouchY = touchY;
-    
-    if (currentNodeIndex !== 0) {
-        resetInactivityTimer();
-    }
+    isTouchActive = true;
+    touchStartY = event.touches[0].clientY;
+    event.preventDefault();
 }
 
 function resetInactivityTimer() {
@@ -489,28 +473,35 @@ function spawnEmoji(emoji) {
 
 // ===== EMOJI MANAGEMENT =====
 function setupEmojiEventListeners() {
-    // Use event delegation for emoji clicks
-    document.addEventListener('click', (e) => {
+    document.addEventListener('touchstart', (e) => {
         const emoji = e.target.closest('.emoji');
-        if (emoji) {
-            // Only allow clicks on nodes 1-5 (where emojis exist)
-            if (!isTransitioning && currentNodeIndex > 0 && currentNodeIndex < 6) {
-                playSound(tapSound);
-                incrementCounter(emoji);
-                resetInactivityTimer();
-            }
+        if (!emoji || e.touches.length !== 1) {
+            return;
         }
-    });
+        
+        // Only allow emoji interactions on content nodes
+        if (!isTransitioning && currentNodeIndex > 0 && currentNodeIndex < 6) {
+            playSound(tapSound);
+            incrementCounter(emoji);
+            resetInactivityTimer();
+        }
+        
+        // Prevent event from triggering other touch handlers
+        e.stopPropagation();
+    }, { passive: false });
 }
 
 // ===== Initialization =====
 function initialize() {
     console.log('Starting initialization...');
     
-    // Setup event listeners
-    document.addEventListener('wheel', handleSwipe, { passive: false });
+    // Only use touch events since this is for touch monitors only
     document.addEventListener('touchstart', handleTouchStart, { passive: false });
-    document.addEventListener('touchend', handleTouchEnd, { passive: true });
+    document.addEventListener('touchend', handleTouchEnd, { passive: false });
+    document.addEventListener('touchcancel', handleTouchCancel, { passive: false });
+    
+    // Prevent default touch move to disable dragging/scrolling
+    document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
     
     // Setup emoji click handlers
     setupEmojiEventListeners();
