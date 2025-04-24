@@ -54,7 +54,7 @@ body {
     position: absolute;
     width: 100vw;
     height: 100vh;
-    transition: transform 1s ease;
+    transition: transform .8s ease;
     will-change: transform;
     
     /* Initial state - all nodes pinned to bottom */
