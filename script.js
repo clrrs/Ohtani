@@ -367,6 +367,10 @@ function handleVideoPlayback(entries) {
             if (entry.isIntersecting) {
                 video.currentTime = 0;
                 video.play();
+                // Unmute after a short delay
+                setTimeout(() => {
+                    video.muted = false;
+                }, 50); // Reduced from 100ms to 50ms for less noticeable delay
                 hideSwipeUpPrompt(swipeUp);
                 
                 // Skip swipe up for last node
@@ -394,6 +398,7 @@ function handleVideoPlayback(entries) {
             } else {
                 video.pause();
                 video.currentTime = 0;
+                video.muted = true; // Re-mute when video goes out of view
                 hideSwipeUpPrompt(swipeUp);
                 
                 // Clear timer when video goes out of view
