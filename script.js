@@ -14,7 +14,7 @@ const FADE_DURATION = 1000; // Duration of fade in/out animations (ms)
 
 // Background Animation Settings
 const COLUMN_COUNT = 3; // Number of columns in the background grid
-const COLUMN_SPEEDS = [0.5, 0.7, 0.2]; // Base speed for each column (all positive = upward movement)
+const COLUMN_SPEEDS = [0.35, 0.5, 0.2]; // Base speed for each column (all positive = upward movement)
 const SPEED_BOOST_MULTIPLIER = 350; // How much faster during swipe
 const SPEED_TRANSITION_DURATION = 3000; // How long to return to normal speed (ms)
 
@@ -127,8 +127,8 @@ function handleNavigation(distance, eventType) {
     const now = Date.now();
     const timeSinceLastInteraction = now - lastInteractionTime;
     
-    // Enforce lockout period and prevent interaction during transitions
-    if (timeSinceLastInteraction < LOCKOUT_DURATION || isTransitioning) {
+    // Only enforce lockout period if not in initialization or reset
+    if ((timeSinceLastInteraction < LOCKOUT_DURATION && currentNodeIndex !== 0) || isTransitioning) {
         return false;
     }
     
