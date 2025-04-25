@@ -365,16 +365,16 @@ function resetInactivityTimer() {
         clearTimeout(inactivityTimer);
     }
     
-    // Don't set timer if we're on the first node or a video is playing
-    if (currentNodeIndex === 0 || isVideoPlaying) return;
+    // Don't set timer if we're on the first node, a video is playing, or a transition is happening
+    if (currentNodeIndex === 0 || isVideoPlaying || isTransitioning) return;
     
     // Update last interaction time
     lastInteractionTime = Date.now();
     
     // Set new timer
     inactivityTimer = setTimeout(() => {
-        // Only trigger if we're still on the same node and no video is playing
-        if (currentNodeIndex !== 0 && !isVideoPlaying) {
+        // Only trigger if we're still on the same node, no video is playing, and no transition is happening
+        if (currentNodeIndex !== 0 && !isVideoPlaying && !isTransitioning) {
             // Fade out
             document.body.style.backgroundColor = 'white';
             document.getElementById('root').classList.add('fade-out');
@@ -409,6 +409,9 @@ function handleVideoPlayback(entries) {
         
         if (video) {
             if (entry.isIntersecting) {
+                // Don't start video if we're in a transition
+                if (isTransitioning) return;
+                
                 video.currentTime = 0;
                 video.play();
                 isVideoPlaying = true; // Set video playing flag
@@ -435,7 +438,7 @@ function handleVideoPlayback(entries) {
                         showSwipeUp(swipeUp);
                         // Pause video after 2x duration
                         setTimeout(() => {
-                            if (entry.isIntersecting) { // Only pause if still visible
+                            if (entry.isIntersecting && !isTransitioning) { // Only pause if still visible and not transitioning
                                 video.pause();
                                 isVideoPlaying = false; // Clear video playing flag
                                 resetInactivityTimer(); // Reset timer when video ends
@@ -445,11 +448,17 @@ function handleVideoPlayback(entries) {
                     swipeUpTimers.set(video, timer);
                 }
             } else {
+                // Always pause video when it goes out of view
                 video.pause();
                 video.currentTime = 0;
-                video.muted = true; // Re-mute when video goes out of view
-                isVideoPlaying = false; // Clear video playing flag
-                resetInactivityTimer(); // Reset timer when video goes out of view
+                video.muted = true;
+                
+                // Only update state and reset timer if not in transition
+                if (!isTransitioning) {
+                    isVideoPlaying = false;
+                    resetInactivityTimer();
+                }
+                
                 hideSwipeUpPrompt(swipeUp);
                 
                 // Clear timer when video goes out of view
