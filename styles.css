@@ -147,7 +147,7 @@ body {
 .swipe-up {
     position: absolute;
     bottom: 80px;
-    left: 40px;
+    left: 70px;
     width: 275px;
     height: auto;
     z-index: 10;
