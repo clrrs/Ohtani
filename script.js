@@ -17,6 +17,9 @@ const COLUMN_COUNT = 3; // Number of columns in the background grid
 const COLUMN_SPEEDS = [0.35, 0.5, 0.2]; // Base speed for each column (all positive = upward movement)
 const SPEED_BOOST_MULTIPLIER = 350; // How much faster during swipe
 const SPEED_TRANSITION_DURATION = 3000; // How long to return to normal speed (ms)
+const PERIODIC_BOOST_INTERVAL = 5000; // How often to trigger periodic boost (ms)
+const PERIODIC_BOOST_DURATION = 2500; // How long periodic boost lasts (ms)
+const PERIODIC_BOOST_MULTIPLIER = 200; // How much faster during periodic boost
 
 // Add after constants
 const swipeSound = new Audio('Content/Sounds/swipe.mp3');
@@ -40,6 +43,9 @@ let lastInteractionTime = Date.now(); // Initialize with current time
 let touchStartY = null;
 let isTouchActive = false;
 let isVideoPlaying = false; // Track if any video is playing
+let isPeriodicBoosted = false;
+let periodicBoostStartTime = 0;
+let periodicBoostTimer = null;
 
 // ===== DOM ELEMENTS =====
 const container = document.querySelector('.container');
@@ -270,31 +276,78 @@ function startBackgroundAnimation() {
 
 // Get current speed for a column, accounting for speed boost
 function getCurrentSpeed(index) {
-    if (isSpeedBoosted) {
-        const elapsed = Date.now() - speedBoostStartTime;
-        if (elapsed >= SPEED_TRANSITION_DURATION) {
-            isSpeedBoosted = false;
-            isDownwardSwipe = false;
-            return currentNodeIndex === 0 ? COLUMN_SPEEDS[index] : 0;
-        }
+    const now = Date.now();
+    let speed = 0; // Default to 0 speed
+    
+    // Only move in attract screen or during swipe boost
+    if (currentNodeIndex === 0 || isSpeedBoosted) {
+        speed = COLUMN_SPEEDS[index];
         
-        // Ease in and out
-        let progress;
-        if (elapsed < SPEED_TRANSITION_DURATION / 2) {
-            // Ease in
-            progress = elapsed / (SPEED_TRANSITION_DURATION / 2);
+        // Handle periodic boost in attract screen
+        if (currentNodeIndex === 0) {
+            if (!isPeriodicBoosted && !periodicBoostTimer) {
+                // Start periodic boost timer
+                periodicBoostTimer = setInterval(() => {
+                    isPeriodicBoosted = true;
+                    periodicBoostStartTime = Date.now();
+                    setTimeout(() => {
+                        isPeriodicBoosted = false;
+                    }, PERIODIC_BOOST_DURATION);
+                }, PERIODIC_BOOST_INTERVAL);
+            }
+            
+            if (isPeriodicBoosted) {
+                const elapsed = now - periodicBoostStartTime;
+                if (elapsed >= PERIODIC_BOOST_DURATION) {
+                    isPeriodicBoosted = false;
+                } else {
+                    // Ease in and out for periodic boost
+                    let progress;
+                    if (elapsed < PERIODIC_BOOST_DURATION / 2) {
+                        // Ease in
+                        progress = elapsed / (PERIODIC_BOOST_DURATION / 2);
+                    } else {
+                        // Ease out
+                        progress = 1 - ((elapsed - PERIODIC_BOOST_DURATION / 2) / (PERIODIC_BOOST_DURATION / 2));
+                    }
+                    
+                    const boostAmount = (PERIODIC_BOOST_MULTIPLIER - 1) * progress;
+                    speed *= (1 + boostAmount);
+                }
+            }
         } else {
-            // Ease out
-            progress = 1 - ((elapsed - SPEED_TRANSITION_DURATION / 2) / (SPEED_TRANSITION_DURATION / 2));
+            // Clear periodic boost timer when leaving attract screen
+            if (periodicBoostTimer) {
+                clearInterval(periodicBoostTimer);
+                periodicBoostTimer = null;
+                isPeriodicBoosted = false;
+            }
         }
         
-        const boostAmount = (SPEED_BOOST_MULTIPLIER - 1) * progress;
-        const speed = COLUMN_SPEEDS[index] * (1 + boostAmount);
-        return isDownwardSwipe ? -speed : speed;
+        // Handle swipe boost
+        if (isSpeedBoosted) {
+            const elapsed = now - speedBoostStartTime;
+            if (elapsed >= SPEED_TRANSITION_DURATION) {
+                isSpeedBoosted = false;
+                isDownwardSwipe = false;
+            } else {
+                // Ease in and out for swipe boost
+                let progress;
+                if (elapsed < SPEED_TRANSITION_DURATION / 2) {
+                    // Ease in
+                    progress = elapsed / (SPEED_TRANSITION_DURATION / 2);
+                } else {
+                    // Ease out
+                    progress = 1 - ((elapsed - SPEED_TRANSITION_DURATION / 2) / (SPEED_TRANSITION_DURATION / 2));
+                }
+                
+                const boostAmount = (SPEED_BOOST_MULTIPLIER - 1) * progress;
+                speed *= (1 + boostAmount);
+            }
+        }
     }
     
-    // Only return base speed on node0
-    return currentNodeIndex === 0 ? COLUMN_SPEEDS[index] : 0;
+    return isDownwardSwipe ? -speed : speed;
 }
 
 // Main animation loop
