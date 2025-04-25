@@ -226,38 +226,58 @@ function resetTouchState() {
 function initBackgroundAnimation() {
     // Get all images from the grid
     const images = Array.from(backgroundGrid.querySelectorAll('img'));
-    const imagesPerColumn = Math.ceil(images.length / COLUMN_COUNT);
-    
-    // Create arrays for each column
-    const columnImages = [[], [], []];
-    
-    // Distribute images to columns based on their index
-    images.forEach((img, index) => {
-        const columnIndex = index % COLUMN_COUNT;
-        columnImages[columnIndex].push(img);
-    });
-    
-    // Shuffle only columns 0 and 2 (1st and 3rd columns)
-    columnImages[0] = columnImages[0].sort(() => Math.random() - 0.5);
-    columnImages[2] = columnImages[2].sort(() => Math.random() - 0.5);
     
     // Clear existing grid
     backgroundGrid.innerHTML = '';
     
-    // Create columns and distribute images
+    // Create arrays for each column
+    const middleColumnImages = images.slice(0, 10); // Images 1-10 for middle column
+    const sideColumnImages = images.slice(10, 30); // Images 11-30 for side columns
+    
+    // Split side column images into two groups
+    const leftColumnImages = sideColumnImages.slice(0, 10);
+    const rightColumnImages = sideColumnImages.slice(10);
+    
+    // Create columns
     for (let i = 0; i < COLUMN_COUNT; i++) {
         const columnDiv = document.createElement('div');
         columnDiv.className = `grid-column column-${i}`;
         
-        // Add first set of images to column
-        columnImages[i].forEach(img => {
-            columnDiv.appendChild(img.cloneNode(true));
-        });
-        
-        // Add duplicate images for seamless looping
-        columnImages[i].forEach(img => {
-            columnDiv.appendChild(img.cloneNode(true));
-        });
+        if (i === 1) { // Middle column
+            // Add middle column images
+            middleColumnImages.forEach(img => {
+                const imgClone = img.cloneNode(true);
+                imgClone.style.aspectRatio = '1/1';
+                imgClone.style.objectFit = 'cover';
+                columnDiv.appendChild(imgClone);
+            });
+            // Add duplicates for seamless looping
+            middleColumnImages.forEach(img => {
+                const imgClone = img.cloneNode(true);
+                imgClone.style.aspectRatio = '1/1';
+                imgClone.style.objectFit = 'cover';
+                columnDiv.appendChild(imgClone);
+            });
+        } else { // Side columns
+            const columnImages = i === 0 ? leftColumnImages : rightColumnImages;
+            // Shuffle the images for this column
+            const shuffledImages = [...columnImages].sort(() => Math.random() - 0.5);
+            
+            // Add shuffled images
+            shuffledImages.forEach(img => {
+                const imgClone = img.cloneNode(true);
+                imgClone.style.aspectRatio = '1/1';
+                imgClone.style.objectFit = 'cover';
+                columnDiv.appendChild(imgClone);
+            });
+            // Add duplicates for seamless looping
+            shuffledImages.forEach(img => {
+                const imgClone = img.cloneNode(true);
+                imgClone.style.aspectRatio = '1/1';
+                imgClone.style.objectFit = 'cover';
+                columnDiv.appendChild(imgClone);
+            });
+        }
         
         backgroundGrid.appendChild(columnDiv);
     }

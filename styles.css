@@ -82,7 +82,7 @@ body {
     overflow: hidden;
     z-index: 0;
     height: 100vh;
-    pointer-events: none; /* Allow clicks to pass through */
+    pointer-events: none;
 }
 
 /* Each column is a container for its images */
@@ -97,7 +97,7 @@ body {
 /* Image size and ratio */
 .background-grid img {
     width: 100%;
-    height: auto;
+    aspect-ratio: 1/1;
     object-fit: cover;
 }
 
