@@ -222,6 +222,19 @@ function initBackgroundAnimation() {
     const images = Array.from(backgroundGrid.querySelectorAll('img'));
     const imagesPerColumn = Math.ceil(images.length / COLUMN_COUNT);
     
+    // Create arrays for each column
+    const columnImages = [[], [], []];
+    
+    // Distribute images to columns based on their index
+    images.forEach((img, index) => {
+        const columnIndex = index % COLUMN_COUNT;
+        columnImages[columnIndex].push(img);
+    });
+    
+    // Shuffle only columns 0 and 2 (1st and 3rd columns)
+    columnImages[0] = columnImages[0].sort(() => Math.random() - 0.5);
+    columnImages[2] = columnImages[2].sort(() => Math.random() - 0.5);
+    
     // Clear existing grid
     backgroundGrid.innerHTML = '';
     
@@ -231,20 +244,14 @@ function initBackgroundAnimation() {
         columnDiv.className = `grid-column column-${i}`;
         
         // Add first set of images to column
-        for (let j = 0; j < imagesPerColumn; j++) {
-            const imgIndex = i + (j * COLUMN_COUNT);
-            if (images[imgIndex]) {
-                columnDiv.appendChild(images[imgIndex].cloneNode(true));
-            }
-        }
+        columnImages[i].forEach(img => {
+            columnDiv.appendChild(img.cloneNode(true));
+        });
         
         // Add duplicate images for seamless looping
-        for (let j = 0; j < imagesPerColumn; j++) {
-            const imgIndex = i + (j * COLUMN_COUNT);
-            if (images[imgIndex]) {
-                columnDiv.appendChild(images[imgIndex].cloneNode(true));
-            }
-        }
+        columnImages[i].forEach(img => {
+            columnDiv.appendChild(img.cloneNode(true));
+        });
         
         backgroundGrid.appendChild(columnDiv);
     }
