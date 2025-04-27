@@ -17,7 +17,7 @@ const COLUMN_COUNT = 3; // Number of columns in the background grid
 const COLUMN_SPEEDS = [0.35, 0.5, 0.2]; // Base speed for each column (all positive = upward movement)
 const SPEED_BOOST_MULTIPLIER = 350; // How much faster during swipe
 const SPEED_TRANSITION_DURATION = 3000; // How long to return to normal speed (ms)
-const PERIODIC_BOOST_INTERVAL = 20000; // How often to trigger periodic boost (ms)
+const PERIODIC_BOOST_INTERVAL = 25000; // How often to trigger periodic boost (ms)
 const PERIODIC_BOOST_DURATION = 2500; // How long periodic boost lasts (ms)
 const PERIODIC_BOOST_MULTIPLIER = 200; // How much faster during periodic boost
 
