@@ -12,17 +12,6 @@ const RESET_TRANSITION_DELAY = 100; // Faster transition for reset sequence (ms)
 const RESET_DELAY = 800; // Delay between node 6 and reset sequence (ms)
 const FADE_DURATION = 1000; // Duration of fade in/out animations (ms)
 
-// Node configuration
-const NODE_CONFIG = [
-    { type: 'attract' },
-    { type: 'video', src: 'Content/Slide_01.mp4' },
-    { type: 'video', src: 'Content/Slide_02.mp4' },
-    { type: 'video', src: 'Content/Slide_03.mp4' },
-    { type: 'video', src: 'Content/Slide_04.mp4' },
-    { type: 'image', src: 'Content/Slide_05.png' },
-    { type: 'reset' }
-];
-
 // Background Animation Settings
 const COLUMN_COUNT = 3; // Number of columns in the background grid
 const COLUMN_SPEEDS = [0.35, 0.5, 0.2]; // Base speed for each column (all positive = upward movement)
@@ -50,21 +39,20 @@ let speedBoostStartTime = 0;
 let isDownwardSwipe = false;
 let isTransitioning = false;
 let backgroundSpeed = 0;
-let lastInteractionTime = Date.now();
+let lastInteractionTime = Date.now(); // Initialize with current time
 let touchStartY = null;
 let isTouchActive = false;
-let isVideoPlaying = false;
+let isVideoPlaying = false; // Track if any video is playing
 let isPeriodicBoosted = false;
 let periodicBoostStartTime = 0;
 let periodicBoostTimer = null;
-let node5Timer = null;
+let node5Timer = null; // Add timer variable for node 5
 
 // ===== DOM ELEMENTS =====
 const container = document.querySelector('.container');
 const backgroundGrid = document.querySelector('.background-grid');
 const nodes = document.querySelectorAll('.node');
 const initialSwipe = document.querySelector('.initial-swipe');
-const mainVideo = document.getElementById('main-video');
 
 console.log('Background Grid Element:', backgroundGrid); // Debug log
 
@@ -124,6 +112,7 @@ function resetToNode0() {
 
 // ===== NODE TRANSITIONS =====
 function showNode(index, isReset = false) {
+    // Prevent transitions during other transitions or invalid indices
     if (isTransitioning || index < 0 || index >= NODE_COUNT) return;
     
     isTransitioning = true;
@@ -131,12 +120,6 @@ function showNode(index, isReset = false) {
     const current = nodes[currentNodeIndex];
     const next = nodes[index];
     const isMovingUp = index > currentNodeIndex;
-    
-    // Stop any playing video before transition
-    const mainVideo = document.getElementById('main-video');
-    mainVideo.pause();
-    mainVideo.currentTime = 0;
-    mainVideo.muted = true;
     
     // Move current node out of view
     if (isMovingUp) {
@@ -152,13 +135,11 @@ function showNode(index, isReset = false) {
     }
     
     // Show next node after transition delay
+    // Use faster transition for reset sequence
     setTimeout(() => {
         next.style.transform = 'translateY(0)';
         currentNodeIndex = index;
         isTransitioning = false;
-        
-        // Handle video playback for the new node
-        handleVideoPlayback(index);
     }, isReset ? RESET_TRANSITION_DELAY : TRANSITION_DELAY);
 }
 
@@ -503,68 +484,84 @@ function resetInactivityTimer() {
     }, INACTIVITY_TIMEOUT);
 }
 
-// ===== VIDEO MANAGEMENT =====
-function handleVideoPlayback(nodeIndex) {
-    const config = NODE_CONFIG[nodeIndex];
-    const node = nodes[nodeIndex];
-    const swipeUp = node.querySelector('.swipe-up');
-    const mainVideo = document.getElementById('main-video');
-    
-    // Always stop any playing video first
-    mainVideo.pause();
-    mainVideo.currentTime = 0;
-    mainVideo.muted = true;
-    
-    if (config.type === 'video') {
-        // Move video to current node if it's not already there
-        if (mainVideo.parentNode !== node) {
-            node.insertBefore(mainVideo, node.firstChild);
-        }
+// ===== Video Management =====
+function handleVideoPlayback(entries) {
+    entries.forEach(entry => {
+        const video = entry.target.querySelector('video');
+        const swipeUp = entry.target.querySelector('.swipe-up');
+        const nodeId = entry.target.id;
+        const nodeIndex = parseInt(nodeId.replace('node', ''));
         
-        // Make sure video is visible
-        mainVideo.style.display = 'block';
-        
-        // Set up and play new video
-        mainVideo.src = config.src;
-        mainVideo.load();
-        mainVideo.play();
-        isVideoPlaying = true;
-        resetInactivityTimer();
-        
-        // Unmute after a short delay
-        setTimeout(() => {
-            if (currentNodeIndex === nodeIndex) { // Only unmute if we're still on this node
-                mainVideo.muted = false;
+        if (entry.isIntersecting) {
+            // Don't start if we're in a transition
+            if (isTransitioning) return;
+            
+            // Handle node 5 (image) separately
+            if (nodeIndex === 5) {
+                startNode5Timer();
+                return;
             }
-        }, 50);
-        
-        hideSwipeUpPrompt(swipeUp);
-        
-        // Clear any existing timer for this video
-        if (swipeUpTimers.has(nodeIndex)) {
-            clearTimeout(swipeUpTimers.get(nodeIndex));
-        }
-        
-        // Set new timer based on the video duration
-        const videoDuration = VIDEO_DURATIONS[nodeIndex];
-        const timer = setTimeout(() => {
-            if (currentNodeIndex === nodeIndex) { // Only show swipe up if we're still on this node
-                showSwipeUp(swipeUp);
-                setTimeout(() => {
-                    if (currentNodeIndex === nodeIndex && !isTransitioning) {
-                        mainVideo.pause();
-                        isVideoPlaying = false;
-                        resetInactivityTimer();
-                    }
+            
+            // Handle video nodes
+            if (video) {
+                video.currentTime = 0;
+                video.play();
+                isVideoPlaying = true;
+                resetInactivityTimer();
+                
+                hideSwipeUpPrompt(swipeUp);
+                
+                // Clear any existing timer for this video
+                if (swipeUpTimers.has(video)) {
+                    clearTimeout(swipeUpTimers.get(video));
+                }
+                
+                // Set new timer based on the video duration
+                const videoDuration = VIDEO_DURATIONS[nodeIndex];
+                const timer = setTimeout(() => {
+                    showSwipeUp(swipeUp);
+                    setTimeout(() => {
+                        if (entry.isIntersecting && !isTransitioning) {
+                            video.pause();
+                            isVideoPlaying = false;
+                            resetInactivityTimer();
+                        }
+                    }, videoDuration);
                 }, videoDuration);
+                swipeUpTimers.set(video, timer);
             }
-        }, videoDuration);
-        swipeUpTimers.set(nodeIndex, timer);
-    } else {
-        // For non-video nodes, hide the video
-        mainVideo.style.display = 'none';
-        isVideoPlaying = false;
-    }
+        } else {
+            // Handle leaving node 5
+            if (nodeIndex === 5) {
+                if (node5Timer) {
+                    clearTimeout(node5Timer);
+                    node5Timer = null;
+                }
+                if (swipeUp) {
+                    hideSwipeUpPrompt(swipeUp);
+                }
+            }
+            
+            // Handle video nodes
+            if (video) {
+                video.pause();
+                video.currentTime = 0;
+                video.muted = true;
+                
+                if (!isTransitioning) {
+                    isVideoPlaying = false;
+                    resetInactivityTimer();
+                }
+                
+                hideSwipeUpPrompt(swipeUp);
+                
+                if (swipeUpTimers.has(video)) {
+                    clearTimeout(swipeUpTimers.get(video));
+                    swipeUpTimers.delete(video);
+                }
+            }
+        }
+    });
 }
 
 function hideSwipeUpPrompt(element) {
@@ -719,6 +716,9 @@ function initialize() {
     // Reset to initial state
     resetToNode0();
     
+    // Add tap to start handler
+    document.addEventListener('touchstart', handleTapToStart, { once: true });
+    
     console.log('Initialization complete');
 }
 
@@ -758,4 +758,17 @@ function triggerReset() {
             }, FADE_DURATION);
         }, FADE_DURATION);
     }, RESET_DELAY);
+}
+
+function handleTapToStart() {
+    const overlay = document.getElementById('tap-to-start-overlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+    
+    // Unmute all videos
+    const videos = document.querySelectorAll('video');
+    videos.forEach(video => {
+        video.muted = false;
+    });
 } 

@@ -8,6 +8,9 @@
 </head>
 <body>
     <div id="root">
+        <div id="tap-to-start-overlay">
+            <div class="tap-to-start-text">TAP TO START</div>
+        </div>
         <img src="Content/Attract_SwipeUp.png" alt="Attract Swipe Up" class="attract-swipe-up initial-swipe">
         <div class="background-grid">
             <!-- First set of images -->
@@ -114,14 +117,15 @@
             <img src="Content/Background/50.png" alt="Background 50">
         </div>
         <div class="container">
-            <!-- Node 0 (Attract Screen) -->
+            <!-- Attract Screen -->
             <div class="node" id="node0">
                 <div class="node-content"></div>
             </div>
 
             <!-- Node 1 -->
             <div class="node" id="node1">
-                <video id="main-video" playsinline loop class="node-content" hwz="z-index:-1" muted></video>
+                <video src="Content/Slide_01.mp4" playsinline loop class="node-content" hwz="z-index:-1" muted>   <!-- hwz is video layering for BrightSign -->
+                </video>
                 <div class="emoji-container">
                     <div class="emoji" data-emoji="3">
                         <img src="Content/Emojis/Emoji_3.png" alt="Emoji 3">
@@ -141,7 +145,7 @@
     
             <!-- Node 2 -->
             <div class="node" id="node2">
-                <div class="node-content"></div>
+                <video src="Content/Slide_02.mp4" playsinline loop class="node-content" hwz="z-index:-1" muted></video>
                 <div class="emoji-container">
                     <div class="emoji" data-emoji="1">
                         <img src="Content/Emojis/Emoji_1.png" alt="Emoji 1">
@@ -161,7 +165,7 @@
     
             <!-- Node 3 -->
             <div class="node" id="node3">
-                <div class="node-content"></div>
+                <video src="Content/Slide_03.mp4" playsinline loop class="node-content" hwz="z-index:-1" muted></video>
                 <div class="emoji-container">
                     <div class="emoji" data-emoji="1">
                         <img src="Content/Emojis/Emoji_1.png" alt="Emoji 1">
@@ -181,7 +185,7 @@
     
             <!-- Node 4 -->
             <div class="node" id="node4">
-                <div class="node-content"></div>
+                <video src="Content/Slide_04.mp4" playsinline loop class="node-content" hwz="z-index:-1" muted></video>
                 <div class="emoji-container">
                     <div class="emoji" data-emoji="1">
                         <img src="Content/Emojis/Emoji_1.png" alt="Emoji 1">
