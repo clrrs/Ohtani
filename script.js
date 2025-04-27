@@ -58,6 +58,18 @@ console.log('Background Grid Element:', backgroundGrid); // Debug log
 
 // ===== RESET FUNCTION =====
 function resetToNode0() {
+    // Clear any existing timers
+    if (node5Timer) {
+        clearTimeout(node5Timer);
+        node5Timer = null;
+    }
+    
+    // Hide swipe up prompt
+    const swipeUp = document.querySelector('.swipe-up');
+    if (swipeUp) {
+        hideSwipeUpPrompt(swipeUp);
+    }
+    
     // Disable transitions temporarily to prevent animation during reset
     nodes.forEach(node => {
         node.style.transition = 'none';
@@ -490,16 +502,7 @@ function handleVideoPlayback(entries) {
             
             // Handle node 5 (image) separately
             if (nodeIndex === 5) {
-                // Clear any existing timer
-                if (node5Timer) {
-                    clearTimeout(node5Timer);
-                }
-                // Set 15 second timer
-                node5Timer = setTimeout(() => {
-                    if (currentNodeIndex === 5 && !isTransitioning) {
-                        triggerReset();
-                    }
-                }, 15000);
+                startNode5Timer();
                 return;
             }
             
@@ -536,9 +539,14 @@ function handleVideoPlayback(entries) {
             }
         } else {
             // Handle leaving node 5
-            if (nodeIndex === 5 && node5Timer) {
-                clearTimeout(node5Timer);
-                node5Timer = null;
+            if (nodeIndex === 5) {
+                if (node5Timer) {
+                    clearTimeout(node5Timer);
+                    node5Timer = null;
+                }
+                if (swipeUp) {
+                    hideSwipeUpPrompt(swipeUp);
+                }
             }
             
             // Handle video nodes
@@ -630,7 +638,33 @@ function spawnEmoji(emoji) {
     }
 }
 
-// ===== EMOJI MANAGEMENT =====
+// ===== NODE 5 TIMING =====
+function startNode5Timer() {
+    if (node5Timer) {
+        clearTimeout(node5Timer);
+    }
+    
+    const swipeUp = document.querySelector('#node5 .swipe-up');
+    if (!swipeUp) return;
+    
+    // Set 15 second timer to show swipe up
+    node5Timer = setTimeout(() => {
+        if (currentNodeIndex === 5 && !isTransitioning) {
+            showSwipeUp(swipeUp);
+            // Set another 15 second timer to move to node 6 and trigger reset
+            node5Timer = setTimeout(() => {
+                if (currentNodeIndex === 5 && !isTransitioning) {
+                    // Trigger background animation speed boost
+                    isSpeedBoosted = true;
+                    isDownwardSwipe = false;
+                    speedBoostStartTime = Date.now();
+                    triggerReset();
+                }
+            }, 15000);
+        }
+    }, 15000);
+}
+
 function setupEmojiEventListeners() {
     document.addEventListener('touchstart', (e) => {
         const emoji = e.target.closest('.emoji');
@@ -642,16 +676,15 @@ function setupEmojiEventListeners() {
         if (!isTransitioning && currentNodeIndex > 0 && currentNodeIndex < 6) {
             playSound(tapSound);
             incrementCounter(emoji);
-            resetInactivityTimer();
+            
+            // Don't reset inactivity timer on node 5 to keep swipe up prompt visible
+            if (currentNodeIndex !== 5) {
+                resetInactivityTimer();
+            }
             
             // Reset node 5 timer if on node 5
-            if (currentNodeIndex === 5 && node5Timer) {
-                clearTimeout(node5Timer);
-                node5Timer = setTimeout(() => {
-                    if (currentNodeIndex === 5 && !isTransitioning) {
-                        triggerReset();
-                    }
-                }, 15000);
+            if (currentNodeIndex === 5) {
+                startNode5Timer();
             }
         }
         
