@@ -146,7 +146,7 @@ body {
 /* Swipe Up Animation */
 .swipe-up {
     position: absolute;
-    bottom: 80px;
+    bottom: 45px;
     left: 70px;
     width: 275px;
     height: auto;

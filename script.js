@@ -4,9 +4,9 @@ const NODE_COUNT = 7; // Total number of nodes (including attract screen and res
 const BACKGROUND_SPEED = 15.0; // Base speed of background animation
 const LOCKOUT_DURATION = 2800; // How long to prevent swipes after a transition (ms)
 const INACTIVITY_TIMEOUT = 1000; // Time before screen fades out (ms)
-const VIDEO_DURATIONS = [0, 12000, 17000, 21000, 21000, 10000, 0]; // Duration each video should play (ms)
+const VIDEO_DURATIONS = [0, 12000, 17500, 21300, 20020, 10000, 0]; // Duration each video should play (ms)
 const BACKGROUND_ANIMATION_DURATION = 400; // Duration of background animations (ms)
-const MIN_SWIPE_DISTANCE = 50; // Minimum distance required for a swipe to register (px)
+const MIN_SWIPE_DISTANCE = 300; // Minimum distance required for a swipe to register (px)
 const TRANSITION_DELAY = 2300; // Delay between node transitions (ms)
 const RESET_TRANSITION_DELAY = 100; // Faster transition for reset sequence (ms)
 const RESET_DELAY = 800; // Delay between node 6 and reset sequence (ms)
@@ -17,7 +17,7 @@ const COLUMN_COUNT = 3; // Number of columns in the background grid
 const COLUMN_SPEEDS = [0.35, 0.5, 0.2]; // Base speed for each column (all positive = upward movement)
 const SPEED_BOOST_MULTIPLIER = 350; // How much faster during swipe
 const SPEED_TRANSITION_DURATION = 3000; // How long to return to normal speed (ms)
-const PERIODIC_BOOST_INTERVAL = 20000; // How often to trigger periodic boost (ms)
+const PERIODIC_BOOST_INTERVAL = 25000; // How often to trigger periodic boost (ms)
 const PERIODIC_BOOST_DURATION = 2500; // How long periodic boost lasts (ms)
 const PERIODIC_BOOST_MULTIPLIER = 200; // How much faster during periodic boost
 
@@ -46,6 +46,7 @@ let isVideoPlaying = false; // Track if any video is playing
 let isPeriodicBoosted = false;
 let periodicBoostStartTime = 0;
 let periodicBoostTimer = null;
+let node5Timer = null; // Add timer variable for node 5
 
 // ===== DOM ELEMENTS =====
 const container = document.querySelector('.container');
@@ -57,6 +58,18 @@ console.log('Background Grid Element:', backgroundGrid); // Debug log
 
 // ===== RESET FUNCTION =====
 function resetToNode0() {
+    // Clear any existing timers
+    if (node5Timer) {
+        clearTimeout(node5Timer);
+        node5Timer = null;
+    }
+    
+    // Hide swipe up prompt
+    const swipeUp = document.querySelector('.swipe-up');
+    if (swipeUp) {
+        hideSwipeUpPrompt(swipeUp);
+    }
+    
     // Disable transitions temporarily to prevent animation during reset
     nodes.forEach(node => {
         node.style.transition = 'none';
@@ -79,6 +92,11 @@ function resetToNode0() {
         isTransitioning = false;
         currentNodeIndex = 0;
         lock = false;
+        
+        // Reset emoji counters after transition is complete
+        setTimeout(() => {
+            randomizeCounters();
+        }, 1000); // Wait for fade-in to complete
     });
     
     // Reset background animation
@@ -90,9 +108,6 @@ function resetToNode0() {
     if (attractSwipeUp) {
         attractSwipeUp.style.opacity = '1';
     }
-
-    // Reset emoji counters
-    randomizeCounters();
 }
 
 // ===== NODE TRANSITIONS =====
@@ -160,31 +175,7 @@ function handleNavigation(distance, eventType) {
         
         // Special handling for reset sequence
         if (currentNodeIndex === 5 && direction === 1) {
-            showNode(6, true);
-            setTimeout(() => {
-                // Fade out
-                document.body.style.backgroundColor = 'white';
-                document.getElementById('root').classList.add('fade-out');
-                
-                // After fade out, reset and fade in
-                setTimeout(() => {
-                    resetToNode0();
-                    container.scrollTo({
-                        top: 0,
-                        behavior: 'instant'
-                    });
-                    
-                    // Fade in
-                    document.body.style.backgroundColor = '';
-                    document.getElementById('root').classList.remove('fade-out');
-                    document.getElementById('root').classList.add('fade-in');
-                    
-                    // Remove fade-in class after transition
-                    setTimeout(() => {
-                        document.getElementById('root').classList.remove('fade-in');
-                    }, FADE_DURATION);
-                }, FADE_DURATION);
-            }, RESET_DELAY);
+            triggerReset();
         } else {
             showNode(nextNodeIndex);
         }
@@ -230,13 +221,10 @@ function initBackgroundAnimation() {
     // Clear existing grid
     backgroundGrid.innerHTML = '';
     
-    // Create arrays for each column
-    const middleColumnImages = images.slice(0, 10); // Images 1-10 for middle column
-    const sideColumnImages = images.slice(10, 30); // Images 11-30 for side columns
-    
-    // Split side column images into two groups
-    const leftColumnImages = sideColumnImages.slice(0, 10);
-    const rightColumnImages = sideColumnImages.slice(10);
+    // Split images into three groups based on their index
+    const middleColumnImages = images.slice(0, 10); // Images 1-10
+    const leftColumnImages = images.slice(10, 30); // Images 11-30
+    const rightColumnImages = images.slice(30, 50); // Images 31-50
     
     // Create columns
     for (let i = 0; i < COLUMN_COUNT; i++) {
@@ -244,7 +232,7 @@ function initBackgroundAnimation() {
         columnDiv.className = `grid-column column-${i}`;
         
         if (i === 1) { // Middle column
-            // Add middle column images
+            // Add first 10 images
             middleColumnImages.forEach(img => {
                 const imgClone = img.cloneNode(true);
                 imgClone.style.aspectRatio = '1/1';
@@ -258,20 +246,31 @@ function initBackgroundAnimation() {
                 imgClone.style.objectFit = 'cover';
                 columnDiv.appendChild(imgClone);
             });
-        } else { // Side columns
-            const columnImages = i === 0 ? leftColumnImages : rightColumnImages;
-            // Shuffle the images for this column
-            const shuffledImages = [...columnImages].sort(() => Math.random() - 0.5);
-            
-            // Add shuffled images
-            shuffledImages.forEach(img => {
+        } else if (i === 0) { // Left column
+            // Add images 11-30
+            leftColumnImages.forEach(img => {
                 const imgClone = img.cloneNode(true);
                 imgClone.style.aspectRatio = '1/1';
                 imgClone.style.objectFit = 'cover';
                 columnDiv.appendChild(imgClone);
             });
             // Add duplicates for seamless looping
-            shuffledImages.forEach(img => {
+            leftColumnImages.forEach(img => {
+                const imgClone = img.cloneNode(true);
+                imgClone.style.aspectRatio = '1/1';
+                imgClone.style.objectFit = 'cover';
+                columnDiv.appendChild(imgClone);
+            });
+        } else { // Right column
+            // Add images 31-50
+            rightColumnImages.forEach(img => {
+                const imgClone = img.cloneNode(true);
+                imgClone.style.aspectRatio = '1/1';
+                imgClone.style.objectFit = 'cover';
+                columnDiv.appendChild(imgClone);
+            });
+            // Add duplicates for seamless looping
+            rightColumnImages.forEach(img => {
                 const imgClone = img.cloneNode(true);
                 imgClone.style.aspectRatio = '1/1';
                 imgClone.style.objectFit = 'cover';
@@ -455,28 +454,32 @@ function resetInactivityTimer() {
     inactivityTimer = setTimeout(() => {
         // Only trigger if we're still on the same node, no video is playing, and no transition is happening
         if (currentNodeIndex !== 0 && !isVideoPlaying && !isTransitioning) {
-            // Fade out
-            document.body.style.backgroundColor = 'white';
-            document.getElementById('root').classList.add('fade-out');
-            
-            // After fade out, reset and fade in
-            setTimeout(() => {
-                resetToNode0();
-                container.scrollTo({
-                    top: 0,
-                    behavior: 'instant'
-                });
+            if (currentNodeIndex === 5) {
+                triggerReset();
+            } else {
+                // Fade out
+                document.body.style.backgroundColor = 'white';
+                document.getElementById('root').classList.add('fade-out');
                 
-                // Fade in
-                document.body.style.backgroundColor = '';
-                document.getElementById('root').classList.remove('fade-out');
-                document.getElementById('root').classList.add('fade-in');
-                
-                // Remove fade-in class after transition
+                // After fade out, reset and fade in
                 setTimeout(() => {
-                    document.getElementById('root').classList.remove('fade-in');
+                    resetToNode0();
+                    container.scrollTo({
+                        top: 0,
+                        behavior: 'instant'
+                    });
+                    
+                    // Fade in
+                    document.body.style.backgroundColor = '';
+                    document.getElementById('root').classList.remove('fade-out');
+                    document.getElementById('root').classList.add('fade-in');
+                    
+                    // Remove fade-in class after transition
+                    setTimeout(() => {
+                        document.getElementById('root').classList.remove('fade-in');
+                    }, FADE_DURATION);
                 }, FADE_DURATION);
-            }, FADE_DURATION);
+            }
         }
     }, INACTIVITY_TIMEOUT);
 }
@@ -486,54 +489,68 @@ function handleVideoPlayback(entries) {
     entries.forEach(entry => {
         const video = entry.target.querySelector('video');
         const swipeUp = entry.target.querySelector('.swipe-up');
+        const nodeId = entry.target.id;
+        const nodeIndex = parseInt(nodeId.replace('node', ''));
         
-        if (video) {
-            if (entry.isIntersecting) {
-                // Don't start video if we're in a transition
-                if (isTransitioning) return;
-                
+        if (entry.isIntersecting) {
+            // Don't start if we're in a transition
+            if (isTransitioning) return;
+            
+            // Handle node 5 (image) separately
+            if (nodeIndex === 5) {
+                startNode5Timer();
+                return;
+            }
+            
+            // Handle video nodes
+            if (video) {
                 video.currentTime = 0;
                 video.play();
-                isVideoPlaying = true; // Set video playing flag
-                resetInactivityTimer(); // Reset timer when video starts
+                isVideoPlaying = true;
+                resetInactivityTimer();
                 
-                // Unmute after a short delay
                 setTimeout(() => {
                     video.muted = false;
                 }, 50);
                 hideSwipeUpPrompt(swipeUp);
                 
-                // Skip swipe up for last node
-                const nodeId = entry.target.id;
-                const nodeIndex = parseInt(nodeId.replace('node', ''));
-                if (nodeIndex !== 5) {
-                    // Clear any existing timer for this video
-                    if (swipeUpTimers.has(video)) {
-                        clearTimeout(swipeUpTimers.get(video));
-                    }
-                    
-                    // Set new timer based on the video duration
-                    const videoDuration = VIDEO_DURATIONS[nodeIndex];
-                    const timer = setTimeout(() => {
-                        showSwipeUp(swipeUp);
-                        // Pause video after 2x duration
-                        setTimeout(() => {
-                            if (entry.isIntersecting && !isTransitioning) { // Only pause if still visible and not transitioning
-                                video.pause();
-                                isVideoPlaying = false; // Clear video playing flag
-                                resetInactivityTimer(); // Reset timer when video ends
-                            }
-                        }, videoDuration);
-                    }, videoDuration);
-                    swipeUpTimers.set(video, timer);
+                // Clear any existing timer for this video
+                if (swipeUpTimers.has(video)) {
+                    clearTimeout(swipeUpTimers.get(video));
                 }
-            } else {
-                // Always pause video when it goes out of view
+                
+                // Set new timer based on the video duration
+                const videoDuration = VIDEO_DURATIONS[nodeIndex];
+                const timer = setTimeout(() => {
+                    showSwipeUp(swipeUp);
+                    setTimeout(() => {
+                        if (entry.isIntersecting && !isTransitioning) {
+                            video.pause();
+                            isVideoPlaying = false;
+                            resetInactivityTimer();
+                        }
+                    }, videoDuration);
+                }, videoDuration);
+                swipeUpTimers.set(video, timer);
+            }
+        } else {
+            // Handle leaving node 5
+            if (nodeIndex === 5) {
+                if (node5Timer) {
+                    clearTimeout(node5Timer);
+                    node5Timer = null;
+                }
+                if (swipeUp) {
+                    hideSwipeUpPrompt(swipeUp);
+                }
+            }
+            
+            // Handle video nodes
+            if (video) {
                 video.pause();
                 video.currentTime = 0;
                 video.muted = true;
                 
-                // Only update state and reset timer if not in transition
                 if (!isTransitioning) {
                     isVideoPlaying = false;
                     resetInactivityTimer();
@@ -541,7 +558,6 @@ function handleVideoPlayback(entries) {
                 
                 hideSwipeUpPrompt(swipeUp);
                 
-                // Clear timer when video goes out of view
                 if (swipeUpTimers.has(video)) {
                     clearTimeout(swipeUpTimers.get(video));
                     swipeUpTimers.delete(video);
@@ -572,7 +588,9 @@ function randomizeCounters() {
     const emojis = document.querySelectorAll('.emoji');
     emojis.forEach(emoji => {
         const counter = emoji.querySelector('.emoji-counter');
-        counter.textContent = Math.floor(Math.random() * (856 - 223 + 1)) + 223;
+        if (counter) { // Add null check
+            counter.textContent = Math.floor(Math.random() * (856 - 223 + 1)) + 223;
+        }
     });
 }
 
@@ -616,7 +634,33 @@ function spawnEmoji(emoji) {
     }
 }
 
-// ===== EMOJI MANAGEMENT =====
+// ===== NODE 5 TIMING =====
+function startNode5Timer() {
+    if (node5Timer) {
+        clearTimeout(node5Timer);
+    }
+    
+    const swipeUp = document.querySelector('#node5 .swipe-up');
+    if (!swipeUp) return;
+    
+    // Set 15 second timer to show swipe up
+    node5Timer = setTimeout(() => {
+        if (currentNodeIndex === 5 && !isTransitioning) {
+            showSwipeUp(swipeUp);
+            // Set another 15 second timer to move to node 6 and trigger reset
+            node5Timer = setTimeout(() => {
+                if (currentNodeIndex === 5 && !isTransitioning) {
+                    // Trigger background animation speed boost
+                    isSpeedBoosted = true;
+                    isDownwardSwipe = false;
+                    speedBoostStartTime = Date.now();
+                    triggerReset();
+                }
+            }, 15000);
+        }
+    }, 15000);
+}
+
 function setupEmojiEventListeners() {
     document.addEventListener('touchstart', (e) => {
         const emoji = e.target.closest('.emoji');
@@ -628,7 +672,16 @@ function setupEmojiEventListeners() {
         if (!isTransitioning && currentNodeIndex > 0 && currentNodeIndex < 6) {
             playSound(tapSound);
             incrementCounter(emoji);
-            resetInactivityTimer();
+            
+            // Don't reset inactivity timer on node 5 to keep swipe up prompt visible
+            if (currentNodeIndex !== 5) {
+                resetInactivityTimer();
+            }
+            
+            // Reset node 5 timer if on node 5
+            if (currentNodeIndex === 5) {
+                startNode5Timer();
+            }
         }
         
         // Prevent event from triggering other touch handlers
@@ -676,4 +729,33 @@ window.onload = initialize;
 function playSound(sound) {
     sound.currentTime = 0;
     sound.play().catch(err => console.warn('Audio play failed:', err));
+}
+
+// Add new function to handle reset
+function triggerReset() {
+    showNode(6, true);
+    setTimeout(() => {
+        // Fade out
+        document.body.style.backgroundColor = 'white';
+        document.getElementById('root').classList.add('fade-out');
+        
+        // After fade out, reset and fade in
+        setTimeout(() => {
+            resetToNode0();
+            container.scrollTo({
+                top: 0,
+                behavior: 'instant'
+            });
+            
+            // Fade in
+            document.body.style.backgroundColor = '';
+            document.getElementById('root').classList.remove('fade-out');
+            document.getElementById('root').classList.add('fade-in');
+            
+            // Remove fade-in class after transition
+            setTimeout(() => {
+                document.getElementById('root').classList.remove('fade-in');
+            }, FADE_DURATION);
+        }, FADE_DURATION);
+    }, RESET_DELAY);
 } 
