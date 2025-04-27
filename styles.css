@@ -26,6 +26,26 @@ body {
     transition: opacity 1s ease;
 }
 
+#tap-to-start-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.tap-to-start-text {
+    font-size: 3rem;
+    font-weight: bold;
+    color: black;
+    text-align: center;
+}
+
 .attract-swipe-up {
     position: fixed;
     top: 50%;
@@ -173,28 +193,5 @@ body {
 
 .fade-in {
     opacity: 1;
-}
-
-#tap-to-start-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.5);
-    z-index: 1000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.tap-to-start-text {
-    font-size: 3rem;
-    font-weight: bold;
-    color: black;
-    text-align: center;
-    padding: 20px;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 10px;
 } 
 

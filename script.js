@@ -508,7 +508,6 @@ function handleVideoPlayback(entries) {
                 video.play();
                 isVideoPlaying = true;
                 resetInactivityTimer();
-                
                 hideSwipeUpPrompt(swipeUp);
                 
                 // Clear any existing timer for this video
@@ -546,7 +545,6 @@ function handleVideoPlayback(entries) {
             if (video) {
                 video.pause();
                 video.currentTime = 0;
-                video.muted = true;
                 
                 if (!isTransitioning) {
                     isVideoPlaying = false;
@@ -690,6 +688,16 @@ function setupEmojiEventListeners() {
 function initialize() {
     console.log('Starting initialization...');
     
+    // Handle tap to start
+    const overlay = document.getElementById('tap-to-start-overlay');
+    overlay.addEventListener('touchstart', () => {
+        overlay.style.display = 'none';
+        // Set all videos to autoplay and unmuted
+        document.querySelectorAll('video').forEach(video => {
+            video.autoplay = true;
+        });
+    }, { once: true });
+    
     // Only use touch events since this is for touch monitors only
     document.addEventListener('touchstart', handleTouchStart, { passive: false });
     document.addEventListener('touchend', handleTouchEnd, { passive: false });
@@ -715,9 +723,6 @@ function initialize() {
     
     // Reset to initial state
     resetToNode0();
-    
-    // Add tap to start handler
-    document.addEventListener('touchstart', handleTapToStart, { once: true });
     
     console.log('Initialization complete');
 }
@@ -758,17 +763,4 @@ function triggerReset() {
             }, FADE_DURATION);
         }, FADE_DURATION);
     }, RESET_DELAY);
-}
-
-function handleTapToStart() {
-    const overlay = document.getElementById('tap-to-start-overlay');
-    if (overlay) {
-        overlay.style.display = 'none';
-    }
-    
-    // Unmute all videos
-    const videos = document.querySelectorAll('video');
-    videos.forEach(video => {
-        video.muted = false;
-    });
 } 
