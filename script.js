@@ -230,13 +230,20 @@ function initBackgroundAnimation() {
     // Clear existing grid
     backgroundGrid.innerHTML = '';
     
-    // Create arrays for each column
-    const middleColumnImages = images.slice(0, 10); // Images 1-10 for middle column
-    const sideColumnImages = images.slice(10, 30); // Images 11-30 for side columns
+    // Split images into three groups
+    const totalImages = images.length;
+    const imagesPerColumn = Math.floor(totalImages / 3);
     
-    // Split side column images into two groups
-    const leftColumnImages = sideColumnImages.slice(0, 10);
-    const rightColumnImages = sideColumnImages.slice(10);
+    // First 10 images go to middle column
+    const middleColumnImages = images.slice(0, 10);
+    
+    // Split remaining images between all columns
+    const remainingImages = images.slice(10);
+    const remainingPerColumn = Math.floor(remainingImages.length / 3);
+    
+    const leftColumnImages = remainingImages.slice(0, remainingPerColumn);
+    const middleColumnExtraImages = remainingImages.slice(remainingPerColumn, remainingPerColumn * 2);
+    const rightColumnImages = remainingImages.slice(remainingPerColumn * 2);
     
     // Create columns
     for (let i = 0; i < COLUMN_COUNT; i++) {
@@ -244,15 +251,22 @@ function initBackgroundAnimation() {
         columnDiv.className = `grid-column column-${i}`;
         
         if (i === 1) { // Middle column
-            // Add middle column images
+            // Add first 10 images
             middleColumnImages.forEach(img => {
                 const imgClone = img.cloneNode(true);
                 imgClone.style.aspectRatio = '1/1';
                 imgClone.style.objectFit = 'cover';
                 columnDiv.appendChild(imgClone);
             });
+            // Add extra images for middle column
+            middleColumnExtraImages.forEach(img => {
+                const imgClone = img.cloneNode(true);
+                imgClone.style.aspectRatio = '1/1';
+                imgClone.style.objectFit = 'cover';
+                columnDiv.appendChild(imgClone);
+            });
             // Add duplicates for seamless looping
-            middleColumnImages.forEach(img => {
+            [...middleColumnImages, ...middleColumnExtraImages].forEach(img => {
                 const imgClone = img.cloneNode(true);
                 imgClone.style.aspectRatio = '1/1';
                 imgClone.style.objectFit = 'cover';
@@ -260,18 +274,16 @@ function initBackgroundAnimation() {
             });
         } else { // Side columns
             const columnImages = i === 0 ? leftColumnImages : rightColumnImages;
-            // Shuffle the images for this column
-            const shuffledImages = [...columnImages].sort(() => Math.random() - 0.5);
             
-            // Add shuffled images
-            shuffledImages.forEach(img => {
+            // Add images
+            columnImages.forEach(img => {
                 const imgClone = img.cloneNode(true);
                 imgClone.style.aspectRatio = '1/1';
                 imgClone.style.objectFit = 'cover';
                 columnDiv.appendChild(imgClone);
             });
             // Add duplicates for seamless looping
-            shuffledImages.forEach(img => {
+            columnImages.forEach(img => {
                 const imgClone = img.cloneNode(true);
                 imgClone.style.aspectRatio = '1/1';
                 imgClone.style.objectFit = 'cover';
