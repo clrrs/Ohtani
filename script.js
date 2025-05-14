@@ -175,7 +175,7 @@ function handleNavigation(distance, eventType) {
         
         // Special handling for reset sequence
         if (currentNodeIndex === 5 && direction === 1) {
-            triggerReset();
+            triggerReset(false);  // Manual swipe
         } else {
             showNode(nextNodeIndex);
         }
@@ -455,7 +455,7 @@ function resetInactivityTimer() {
         // Only trigger if we're still on the same node, no video is playing, and no transition is happening
         if (currentNodeIndex !== 0 && !isVideoPlaying && !isTransitioning) {
             if (currentNodeIndex === 5) {
-                triggerReset();
+                triggerReset(true);  // Timeout
             } else {
                 // Fade out
                 document.body.style.backgroundColor = 'white';
@@ -732,12 +732,14 @@ function playSound(sound) {
 }
 
 // Add new function to handle reset
-function triggerReset() {
+function triggerReset(isTimeout = false) {
     showNode(6, true);
     setTimeout(() => {
-        // Fade out
-        document.body.style.backgroundColor = 'white';
-        document.getElementById('root').classList.add('fade-out');
+        // Only fade to white if it's a timeout
+        if (isTimeout) {
+            document.body.style.backgroundColor = 'white';
+            document.getElementById('root').classList.add('fade-out');
+        }
         
         // After fade out, reset and fade in
         setTimeout(() => {
