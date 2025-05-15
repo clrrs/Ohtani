@@ -444,8 +444,8 @@ function resetInactivityTimer() {
         clearTimeout(inactivityTimer);
     }
     
-    // Don't set timer if we're on the first node, a video is playing, or a transition is happening
-    if (currentNodeIndex === 0 || isVideoPlaying || isTransitioning) return;
+    // Don't set timer if we're on the first node or a transition is happening
+    if (currentNodeIndex === 0 || isTransitioning) return;
     
     // Update last interaction time
     lastInteractionTime = Date.now();
@@ -507,7 +507,6 @@ function handleVideoPlayback(entries) {
                 video.currentTime = 0;
                 video.play();
                 isVideoPlaying = true;
-                resetInactivityTimer();
                 
                 setTimeout(() => {
                     video.muted = false;
@@ -527,7 +526,10 @@ function handleVideoPlayback(entries) {
                         if (entry.isIntersecting && !isTransitioning) {
                             video.pause();
                             isVideoPlaying = false;
-                            resetInactivityTimer();
+                            // Start inactivity timer 1 second after video pauses
+                            setTimeout(() => {
+                                resetInactivityTimer();
+                            }, 1000);
                         }
                     }, videoDuration);
                 }, videoDuration);
@@ -553,7 +555,10 @@ function handleVideoPlayback(entries) {
                 
                 if (!isTransitioning) {
                     isVideoPlaying = false;
-                    resetInactivityTimer();
+                    // Start inactivity timer 1 second after video pauses
+                    setTimeout(() => {
+                        resetInactivityTimer();
+                    }, 1000);
                 }
                 
                 hideSwipeUpPrompt(swipeUp);
@@ -758,6 +763,6 @@ function triggerReset(isTimeout = false) {
             setTimeout(() => {
                 document.getElementById('root').classList.remove('fade-in');
             }, FADE_DURATION);
-        }, FADE_DURATION);
+        }, RESET_DELAY);
     }, RESET_DELAY);
 } 
