@@ -222,9 +222,9 @@ function initBackgroundAnimation() {
     backgroundGrid.innerHTML = '';
     
     // Split images into three groups based on their index
-    const middleColumnImages = images.slice(0, 10); // Images 1-10
-    const leftColumnImages = images.slice(10, 30); // Images 11-30
-    const rightColumnImages = images.slice(30, 50); // Images 31-50
+    const middleColumnImages = images.slice(0, 10).concat(images.slice(50, 51)); // Images 1-10 + 51
+    const leftColumnImages = images.slice(10, 30).concat(images.slice(51, 53)); // Images 11-30 + 51-52
+    const rightColumnImages = images.slice(30, 50).concat(images.slice(53, 55)); // Images 31-50 + 53-54
     
     // Create columns
     for (let i = 0; i < COLUMN_COUNT; i++) {
