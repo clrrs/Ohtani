@@ -56,6 +56,55 @@ const initialSwipe = document.querySelector('.initial-swipe');
 
 console.log('Background Grid Element:', backgroundGrid); // Debug log
 
+// ===== RESET SEQUENCE =====
+// There are three ways to trigger a reset:
+// 1. After a video plays twice (handled in handleVideoPlayback)
+// 2. After node 5 times out (handled in startNode5Timer)
+// 3. When user swipes up on node 5 (handled in handleNavigation)
+
+function handleFadeTransition(isFadeOut) {
+    document.body.style.backgroundColor = isFadeOut ? 'white' : '';
+    document.getElementById('root').classList.toggle('fade-out', isFadeOut);
+    document.getElementById('root').classList.toggle('fade-in', !isFadeOut);
+}
+
+function handleResetSequence(shouldFade = false) {
+    if (shouldFade) {
+        // Fade to white first
+        handleFadeTransition(true);
+        
+        // After fade out, show node 6 and reset
+        setTimeout(() => {
+            showNode(6, true);
+            setTimeout(() => {
+                resetToNode0();
+                container.scrollTo({
+                    top: 0,
+                    behavior: 'instant'
+                });
+                
+                // Fade in
+                handleFadeTransition(false);
+                
+                // Remove fade-in class after transition
+                setTimeout(() => {
+                    document.getElementById('root').classList.remove('fade-in');
+                }, FADE_DURATION);
+            }, RESET_DELAY);
+        }, FADE_DURATION);
+    } else {
+        // Manual swipe reset - show node 6 immediately
+        showNode(6, true);
+        setTimeout(() => {
+            resetToNode0();
+            container.scrollTo({
+                top: 0,
+                behavior: 'instant'
+            });
+        }, RESET_DELAY);
+    }
+}
+
 // ===== RESET FUNCTION =====
 function resetToNode0() {
     // Clear any existing timers
@@ -483,16 +532,12 @@ function resetInactivityTimer() {
     
     // Set new timer
     inactivityTimer = setTimeout(() => {
-        // Only trigger if we're still on the same node, no video is playing, and no transition is happening
         if (currentNodeIndex !== 0 && !isVideoPlaying && !isTransitioning) {
             if (currentNodeIndex === 5) {
                 triggerReset(true);  // Timeout
             } else {
-                // Fade out
-                document.body.style.backgroundColor = 'white';
-                document.getElementById('root').classList.add('fade-out');
+                handleFadeTransition(true);
                 
-                // After fade out, reset and fade in
                 setTimeout(() => {
                     resetToNode0();
                     container.scrollTo({
@@ -500,12 +545,8 @@ function resetInactivityTimer() {
                         behavior: 'instant'
                     });
                     
-                    // Fade in
-                    document.body.style.backgroundColor = '';
-                    document.getElementById('root').classList.remove('fade-out');
-                    document.getElementById('root').classList.add('fade-in');
+                    handleFadeTransition(false);
                     
-                    // Remove fade-in class after transition
                     setTimeout(() => {
                         document.getElementById('root').classList.remove('fade-in');
                     }, FADE_DURATION);
@@ -761,43 +802,7 @@ function playSound(sound) {
     sound.play().catch(err => console.warn('Audio play failed:', err));
 }
 
-// Add new function to handle reset
-function triggerReset(isTimeout = false) {
-    if (isTimeout) {
-        // Fade to white first
-        document.body.style.backgroundColor = 'white';
-        document.getElementById('root').classList.add('fade-out');
-        
-        // After fade out, show node 6 and reset
-        setTimeout(() => {
-            showNode(6, true);
-            setTimeout(() => {
-                resetToNode0();
-                container.scrollTo({
-                    top: 0,
-                    behavior: 'instant'
-                });
-                
-                // Fade in
-                document.body.style.backgroundColor = '';
-                document.getElementById('root').classList.remove('fade-out');
-                document.getElementById('root').classList.add('fade-in');
-                
-                // Remove fade-in class after transition
-                setTimeout(() => {
-                    document.getElementById('root').classList.remove('fade-in');
-                }, FADE_DURATION);
-            }, RESET_DELAY);
-        }, FADE_DURATION);
-    } else {
-        // Manual swipe reset - show node 6 immediately
-        showNode(6, true);
-        setTimeout(() => {
-            resetToNode0();
-            container.scrollTo({
-                top: 0,
-                behavior: 'instant'
-            });
-        }, RESET_DELAY);
-    }
+// Replace triggerReset with handleResetSequence
+function triggerReset(shouldFade = false) {
+    handleResetSequence(shouldFade);
 } 
