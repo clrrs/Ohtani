@@ -148,8 +148,8 @@ function handleNavigation(distance, eventType) {
     const now = Date.now();
     const timeSinceLastInteraction = now - lastInteractionTime;
     
-    // Only enforce lockout period if not in initialization or reset
-    if ((timeSinceLastInteraction < LOCKOUT_DURATION && currentNodeIndex !== 0) || isTransitioning) {
+    // Only enforce lockout period if not in initialization, reset, or emoji spawning
+    if ((timeSinceLastInteraction < LOCKOUT_DURATION && currentNodeIndex !== 0 && !document.querySelector('.emoji[style*="transform"]')) || isTransitioning) {
         return false;
     }
     
@@ -687,10 +687,10 @@ function setupEmojiEventListeners() {
             if (currentNodeIndex === 5) {
                 startNode5Timer();
             }
+            
+            // Only stop propagation for the emoji click itself
+            e.stopPropagation();
         }
-        
-        // Prevent event from triggering other touch handlers
-        e.stopPropagation();
     }, { passive: false });
 }
 
