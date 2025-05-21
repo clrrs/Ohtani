@@ -14,7 +14,7 @@ const FADE_DURATION = 1000; // Duration of fade in/out animations (ms)
 
 // Background Animation Settings
 const COLUMN_COUNT = 3; // Number of columns in the background grid
-const COLUMN_SPEEDS = [0.35, 0.5, 0.2]; // Base speed for each column (all positive = upward movement)
+const COLUMN_SPEEDS = [0.175, 0.25, 0.1]; // Base speed for each column (all positive = upward movement)
 const SPEED_BOOST_MULTIPLIER = 350; // How much faster during swipe boost
 const SPEED_TRANSITION_DURATION = 3000; // How long to return to normal speed after swipe boost (ms)
 const PERIODIC_BOOST_INTERVAL = 25000; // How often to trigger periodic boost in attract screen (ms)
