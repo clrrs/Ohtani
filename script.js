@@ -576,37 +576,43 @@ function handleVideoPlayback(entries) {
             
             // Handle video nodes
             if (video) {
-                video.currentTime = 0;
-                video.play();
-                isVideoPlaying = true;
-                
-                setTimeout(() => {
-                    video.muted = false;
-                }, 50);
-                hideSwipeUpPrompt(swipeUp);
-                
                 // Clear any existing timer for this video
                 if (swipeUpTimers.has(video)) {
                     clearTimeout(swipeUpTimers.get(video));
+                    swipeUpTimers.delete(video);
                 }
                 
-                // Set timer for two playthroughs
-                const videoDuration = VIDEO_DURATIONS[nodeIndex];
-                const timer = setTimeout(() => {
-                    // Show swipe up at start of second playthrough
-                    showSwipeUp(swipeUp);
+                video.currentTime = 0;
+                video.play().then(() => {
+                    isVideoPlaying = true;
                     
-                    // After second playthrough completes
                     setTimeout(() => {
-                        if (entry.isIntersecting && !isTransitioning) {
-                            video.pause();
-                            isVideoPlaying = false;
-                            // Use timeout reset to get white fade effect
-                            triggerReset(true);
-                        }
+                        video.muted = false;
+                    }, 50);
+                    hideSwipeUpPrompt(swipeUp);
+                    
+                    // Set timer for two playthroughs
+                    const videoDuration = VIDEO_DURATIONS[nodeIndex];
+                    const timer = setTimeout(() => {
+                        // Show swipe up at start of second playthrough
+                        showSwipeUp(swipeUp);
+                        
+                        // After second playthrough completes
+                        setTimeout(() => {
+                            // Only reset if we're still on this node and not transitioning
+                            if (currentNodeIndex === nodeIndex && !isTransitioning) {
+                                video.pause();
+                                isVideoPlaying = false;
+                                // Use timeout reset to get white fade effect
+                                triggerReset(true);
+                            }
+                        }, videoDuration);
                     }, videoDuration);
-                }, videoDuration);
-                swipeUpTimers.set(video, timer);
+                    swipeUpTimers.set(video, timer);
+                }).catch(err => {
+                    console.warn('Video play failed:', err);
+                    isVideoPlaying = false;
+                });
             }
         } else {
             // Handle leaving node 5
