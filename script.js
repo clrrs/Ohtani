@@ -15,11 +15,11 @@ const FADE_DURATION = 1000; // Duration of fade in/out animations (ms)
 // Background Animation Settings
 const COLUMN_COUNT = 3; // Number of columns in the background grid
 const COLUMN_SPEEDS = [0.35, 0.5, 0.2]; // Base speed for each column (all positive = upward movement)
-const SPEED_BOOST_MULTIPLIER = 350; // How much faster during swipe
-const SPEED_TRANSITION_DURATION = 3000; // How long to return to normal speed (ms)
-const PERIODIC_BOOST_INTERVAL = 25000; // How often to trigger periodic boost (ms)
-const PERIODIC_BOOST_DURATION = 2500; // How long periodic boost lasts (ms)
-const PERIODIC_BOOST_MULTIPLIER = 200; // How much faster during periodic boost
+const SPEED_BOOST_MULTIPLIER = 350; // How much faster during swipe boost
+const SPEED_TRANSITION_DURATION = 3000; // How long to return to normal speed after swipe boost (ms)
+const PERIODIC_BOOST_INTERVAL = 25000; // How often to trigger periodic boost in attract screen (ms)
+const PERIODIC_BOOST_DURATION = 2500; // How long periodic boost lasts in attract screen (ms)
+const PERIODIC_BOOST_MULTIPLIER = 200; // How much faster during periodic boost in attract screen
 
 // Add after constants
 const swipeSound = new Audio('Content/Sounds/swipe.mp3');
@@ -34,18 +34,18 @@ let lock = false;
 let inactivityTimer = null;
 let swipeUpTimers = new Map();
 let animationFrameId = null;
-let isSpeedBoosted = false;
-let speedBoostStartTime = 0;
-let isDownwardSwipe = false;
+let isSpeedBoosted = false; // Tracks if a swipe-triggered speed boost is active
+let speedBoostStartTime = 0; // When the current swipe boost started
+let isDownwardSwipe = false; // Direction of current swipe boost
 let isTransitioning = false;
 let backgroundSpeed = 0;
 let lastInteractionTime = Date.now(); // Initialize with current time
 let touchStartY = null;
 let isTouchActive = false;
 let isVideoPlaying = false; // Track if any video is playing
-let isPeriodicBoosted = false;
-let periodicBoostStartTime = 0;
-let periodicBoostTimer = null;
+let isPeriodicBoosted = false; // Tracks if a periodic boost is active in attract screen
+let periodicBoostStartTime = 0; // When the current periodic boost started
+let periodicBoostTimer = null; // Timer for periodic boosts in attract screen
 let node5Timer = null; // Add timer variable for node 5
 
 // ===== DOM ELEMENTS =====
@@ -165,7 +165,14 @@ function handleNavigation(distance, eventType) {
         
         lastInteractionTime = now;
         
-        // Trigger background animation speed boost
+        // Clear any periodic boost when starting a swipe-triggered speed boost
+        if (periodicBoostTimer) {
+            clearInterval(periodicBoostTimer);
+            periodicBoostTimer = null;
+            isPeriodicBoosted = false;
+        }
+        
+        // Trigger swipe-triggered background animation speed boost
         isSpeedBoosted = true;
         isDownwardSwipe = direction < 0;
         speedBoostStartTime = now;
@@ -305,7 +312,7 @@ function getCurrentSpeed(index) {
         // Handle periodic boost in attract screen
         if (currentNodeIndex === 0) {
             if (!isPeriodicBoosted && !periodicBoostTimer) {
-                // Start periodic boost timer
+                // Start periodic boost timer for attract screen
                 periodicBoostTimer = setInterval(() => {
                     isPeriodicBoosted = true;
                     periodicBoostStartTime = Date.now();
@@ -343,7 +350,7 @@ function getCurrentSpeed(index) {
             }
         }
         
-        // Handle swipe boost
+        // Handle swipe-triggered speed boost
         if (isSpeedBoosted) {
             const elapsed = now - speedBoostStartTime;
             if (elapsed >= SPEED_TRANSITION_DURATION) {
