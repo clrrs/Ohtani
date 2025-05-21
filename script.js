@@ -150,7 +150,7 @@ function resetToNode0() {
     
     // Reset background animation
     columnPositions = [0, 0, 0];
-    animateBackground();
+    startBackgroundAnimation();
     
     // Show attract screen swipe up prompt
     const attractSwipeUp = document.querySelector('.attract-swipe-up');
@@ -358,9 +358,13 @@ function initBackgroundAnimation() {
 
 // Start or restart the background animation
 function startBackgroundAnimation() {
+    // Cancel any existing animation frame
     if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
     }
+    
+    // Start new animation
     animateBackground();
 }
 
@@ -400,9 +404,10 @@ function getCurrentSpeed(index) {
                         // Ease out
                         progress = 1 - ((elapsed - PERIODIC_BOOST_DURATION / 2) / (PERIODIC_BOOST_DURATION / 2));
                     }
-                    
-                    const boostAmount = (PERIODIC_BOOST_MULTIPLIER - 1) * progress;
-                    speed *= (1 + boostAmount);
+                    // Apply easing to speed
+                    const baseSpeed = COLUMN_SPEEDS[index];
+                    const boostedSpeed = baseSpeed * PERIODIC_BOOST_MULTIPLIER;
+                    speed = baseSpeed + (boostedSpeed - baseSpeed) * progress;
                 }
             }
         } else {
@@ -430,9 +435,10 @@ function getCurrentSpeed(index) {
                     // Ease out
                     progress = 1 - ((elapsed - SPEED_TRANSITION_DURATION / 2) / (SPEED_TRANSITION_DURATION / 2));
                 }
-                
-                const boostAmount = (SPEED_BOOST_MULTIPLIER - 1) * progress;
-                speed *= (1 + boostAmount);
+                // Apply easing to speed
+                const baseSpeed = COLUMN_SPEEDS[index];
+                const boostedSpeed = baseSpeed * SPEED_BOOST_MULTIPLIER;
+                speed = baseSpeed + (boostedSpeed - baseSpeed) * progress;
             }
         }
     }
@@ -448,9 +454,12 @@ function animateBackground() {
     const SCREEN_HEIGHT = 1920;
     const GRID_GAP = 120; // Match CSS variable --grid-gap
     
+    // Calculate all speeds first
+    const speeds = columns.map((_, index) => getCurrentSpeed(index));
+    
     columns.forEach((column, index) => {
-        // Update column position based on its current speed
-        columnPositions[index] -= getCurrentSpeed(index);
+        // Update column position using pre-calculated speed
+        columnPositions[index] -= speeds[index];
         
         // Get the total height of one set of images including gaps
         const images = column.querySelectorAll('img');
