@@ -222,9 +222,9 @@ function initBackgroundAnimation() {
     backgroundGrid.innerHTML = '';
     
     // Split images into three groups based on their index
-    const middleColumnImages = images.slice(0, 10).concat(images.slice(50, 51)); // Images 1-10 + 51
-    const leftColumnImages = images.slice(10, 30).concat(images.slice(51, 53)); // Images 11-30 + 51-52
-    const rightColumnImages = images.slice(30, 50).concat(images.slice(53, 55)); // Images 31-50 + 53-54
+    const middleColumnImages = images.slice(0, 19); // Images 1-19
+    const leftColumnImages = images.slice(19, 37); // Images 20-37
+    const rightColumnImages = images.slice(37, 55); // Images 38-55
     
     // Create columns
     for (let i = 0; i < COLUMN_COUNT; i++) {
@@ -232,7 +232,7 @@ function initBackgroundAnimation() {
         columnDiv.className = `grid-column column-${i}`;
         
         if (i === 1) { // Middle column
-            // Add first 10 images
+            // Add first set of images
             middleColumnImages.forEach(img => {
                 const imgClone = img.cloneNode(true);
                 imgClone.style.aspectRatio = '1/1';
@@ -247,7 +247,7 @@ function initBackgroundAnimation() {
                 columnDiv.appendChild(imgClone);
             });
         } else if (i === 0) { // Left column
-            // Add images 11-30
+            // Add first set of images
             leftColumnImages.forEach(img => {
                 const imgClone = img.cloneNode(true);
                 imgClone.style.aspectRatio = '1/1';
@@ -262,7 +262,7 @@ function initBackgroundAnimation() {
                 columnDiv.appendChild(imgClone);
             });
         } else { // Right column
-            // Add images 31-50
+            // Add first set of images
             rightColumnImages.forEach(img => {
                 const imgClone = img.cloneNode(true);
                 imgClone.style.aspectRatio = '1/1';
@@ -374,21 +374,25 @@ function animateBackground() {
     if (!backgroundGrid) return;
     
     const columns = Array.from(backgroundGrid.children);
+    const SCREEN_HEIGHT = 1920;
+    const GRID_GAP = 120; // Match CSS variable --grid-gap
     
     columns.forEach((column, index) => {
         // Update column position based on its current speed
         columnPositions[index] -= getCurrentSpeed(index);
         
-        // Get height of one set of images (half of total height since we have duplicates)
-        const columnHeight = column.offsetHeight / 2;
+        // Get the total height of one set of images including gaps
+        const images = column.querySelectorAll('img');
+        const imageHeight = images[0].offsetHeight;
+        const totalHeight = (imageHeight + GRID_GAP) * (images.length / 2);
         
         // Reset position when scrolled past one full height
         if (isDownwardSwipe) {
             if (columnPositions[index] > 0) {
-                columnPositions[index] = -columnHeight;
+                columnPositions[index] = -totalHeight;
             }
         } else {
-            if (Math.abs(columnPositions[index]) >= columnHeight) {
+            if (Math.abs(columnPositions[index]) >= totalHeight) {
                 columnPositions[index] = 0;
             }
         }
