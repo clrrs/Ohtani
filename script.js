@@ -117,6 +117,21 @@ function showNode(index, isReset = false) {
     
     isTransitioning = true;
     
+    // Clear all timers when switching nodes
+    if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = null;
+    }
+    
+    // Clear all video timers
+    swipeUpTimers.forEach((timer) => {
+        clearTimeout(timer);
+    });
+    swipeUpTimers.clear();
+    
+    // Reset video state
+    isVideoPlaying = false;
+    
     const current = nodes[currentNodeIndex];
     const next = nodes[index];
     const isMovingUp = index > currentNodeIndex;
@@ -453,10 +468,15 @@ function resetInactivityTimer() {
     // Clear existing timer
     if (inactivityTimer) {
         clearTimeout(inactivityTimer);
+        inactivityTimer = null;
     }
     
-    // Don't set timer if we're on the first node or a transition is happening
-    if (currentNodeIndex === 0 || isTransitioning) return;
+    // Don't set timer if:
+    // - We're on the first node
+    // - A transition is happening
+    // - A video is currently playing
+    // - We're in the middle of a video's first playthrough
+    if (currentNodeIndex === 0 || isTransitioning || isVideoPlaying) return;
     
     // Update last interaction time
     lastInteractionTime = Date.now();
