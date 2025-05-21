@@ -15,11 +15,11 @@ const FADE_DURATION = 1000; // Duration of fade in/out animations (ms)
 // Background Animation Settings
 const COLUMN_COUNT = 3; // Number of columns in the background grid
 const COLUMN_SPEEDS = [0.35, 0.5, 0.2]; // Base speed for each column (all positive = upward movement)
-const SPEED_BOOST_MULTIPLIER = 350; // How much faster during swipe
-const SPEED_TRANSITION_DURATION = 3000; // How long to return to normal speed (ms)
-const PERIODIC_BOOST_INTERVAL = 25000; // How often to trigger periodic boost (ms)
-const PERIODIC_BOOST_DURATION = 2500; // How long periodic boost lasts (ms)
-const PERIODIC_BOOST_MULTIPLIER = 200; // How much faster during periodic boost
+const SPEED_BOOST_MULTIPLIER = 350; // How much faster during swipe boost
+const SPEED_TRANSITION_DURATION = 3000; // How long to return to normal speed after swipe boost (ms)
+const PERIODIC_BOOST_INTERVAL = 25000; // How often to trigger periodic boost in attract screen (ms)
+const PERIODIC_BOOST_DURATION = 2500; // How long periodic boost lasts in attract screen (ms)
+const PERIODIC_BOOST_MULTIPLIER = 200; // How much faster during periodic boost in attract screen
 
 // Add after constants
 const swipeSound = new Audio('Content/Sounds/swipe.mp3');
@@ -34,18 +34,18 @@ let lock = false;
 let inactivityTimer = null;
 let swipeUpTimers = new Map();
 let animationFrameId = null;
-let isSpeedBoosted = false;
-let speedBoostStartTime = 0;
-let isDownwardSwipe = false;
+let isSpeedBoosted = false; // Tracks if a swipe-triggered speed boost is active
+let speedBoostStartTime = 0; // When the current swipe boost started
+let isDownwardSwipe = false; // Direction of current swipe boost
 let isTransitioning = false;
 let backgroundSpeed = 0;
 let lastInteractionTime = Date.now(); // Initialize with current time
 let touchStartY = null;
 let isTouchActive = false;
 let isVideoPlaying = false; // Track if any video is playing
-let isPeriodicBoosted = false;
-let periodicBoostStartTime = 0;
-let periodicBoostTimer = null;
+let isPeriodicBoosted = false; // Tracks if a periodic boost is active in attract screen
+let periodicBoostStartTime = 0; // When the current periodic boost started
+let periodicBoostTimer = null; // Timer for periodic boosts in attract screen
 let node5Timer = null; // Add timer variable for node 5
 
 // ===== DOM ELEMENTS =====
@@ -148,8 +148,8 @@ function handleNavigation(distance, eventType) {
     const now = Date.now();
     const timeSinceLastInteraction = now - lastInteractionTime;
     
-    // Only enforce lockout period if not in initialization or reset
-    if ((timeSinceLastInteraction < LOCKOUT_DURATION && currentNodeIndex !== 0) || isTransitioning) {
+    // Only enforce lockout period if not in initialization, reset, or emoji spawning
+    if ((timeSinceLastInteraction < LOCKOUT_DURATION && currentNodeIndex !== 0 && !document.querySelector('.emoji[style*="transform"]')) || isTransitioning) {
         return false;
     }
     
@@ -165,7 +165,14 @@ function handleNavigation(distance, eventType) {
         
         lastInteractionTime = now;
         
-        // Trigger background animation speed boost
+        // Clear any periodic boost when starting a swipe-triggered speed boost
+        if (periodicBoostTimer) {
+            clearInterval(periodicBoostTimer);
+            periodicBoostTimer = null;
+            isPeriodicBoosted = false;
+        }
+        
+        // Trigger swipe-triggered background animation speed boost
         isSpeedBoosted = true;
         isDownwardSwipe = direction < 0;
         speedBoostStartTime = now;
@@ -222,9 +229,9 @@ function initBackgroundAnimation() {
     backgroundGrid.innerHTML = '';
     
     // Split images into three groups based on their index
-    const middleColumnImages = images.slice(0, 10).concat(images.slice(50, 51)); // Images 1-10 + 51
-    const leftColumnImages = images.slice(10, 30).concat(images.slice(51, 53)); // Images 11-30 + 51-52
-    const rightColumnImages = images.slice(30, 50).concat(images.slice(53, 55)); // Images 31-50 + 53-54
+    const middleColumnImages = images.slice(0, 19); // Images 1-19
+    const leftColumnImages = images.slice(19, 37); // Images 20-37
+    const rightColumnImages = images.slice(37, 55); // Images 38-55
     
     // Create columns
     for (let i = 0; i < COLUMN_COUNT; i++) {
@@ -232,7 +239,7 @@ function initBackgroundAnimation() {
         columnDiv.className = `grid-column column-${i}`;
         
         if (i === 1) { // Middle column
-            // Add first 10 images
+            // Add first set of images
             middleColumnImages.forEach(img => {
                 const imgClone = img.cloneNode(true);
                 imgClone.style.aspectRatio = '1/1';
@@ -247,7 +254,7 @@ function initBackgroundAnimation() {
                 columnDiv.appendChild(imgClone);
             });
         } else if (i === 0) { // Left column
-            // Add images 11-30
+            // Add first set of images
             leftColumnImages.forEach(img => {
                 const imgClone = img.cloneNode(true);
                 imgClone.style.aspectRatio = '1/1';
@@ -262,7 +269,7 @@ function initBackgroundAnimation() {
                 columnDiv.appendChild(imgClone);
             });
         } else { // Right column
-            // Add images 31-50
+            // Add first set of images
             rightColumnImages.forEach(img => {
                 const imgClone = img.cloneNode(true);
                 imgClone.style.aspectRatio = '1/1';
@@ -305,7 +312,7 @@ function getCurrentSpeed(index) {
         // Handle periodic boost in attract screen
         if (currentNodeIndex === 0) {
             if (!isPeriodicBoosted && !periodicBoostTimer) {
-                // Start periodic boost timer
+                // Start periodic boost timer for attract screen
                 periodicBoostTimer = setInterval(() => {
                     isPeriodicBoosted = true;
                     periodicBoostStartTime = Date.now();
@@ -343,7 +350,7 @@ function getCurrentSpeed(index) {
             }
         }
         
-        // Handle swipe boost
+        // Handle swipe-triggered speed boost
         if (isSpeedBoosted) {
             const elapsed = now - speedBoostStartTime;
             if (elapsed >= SPEED_TRANSITION_DURATION) {
@@ -374,21 +381,25 @@ function animateBackground() {
     if (!backgroundGrid) return;
     
     const columns = Array.from(backgroundGrid.children);
+    const SCREEN_HEIGHT = 1920;
+    const GRID_GAP = 120; // Match CSS variable --grid-gap
     
     columns.forEach((column, index) => {
         // Update column position based on its current speed
         columnPositions[index] -= getCurrentSpeed(index);
         
-        // Get height of one set of images (half of total height since we have duplicates)
-        const columnHeight = column.offsetHeight / 2;
+        // Get the total height of one set of images including gaps
+        const images = column.querySelectorAll('img');
+        const imageHeight = images[0].offsetHeight;
+        const totalHeight = (imageHeight + GRID_GAP) * (images.length / 2);
         
         // Reset position when scrolled past one full height
         if (isDownwardSwipe) {
             if (columnPositions[index] > 0) {
-                columnPositions[index] = -columnHeight;
+                columnPositions[index] = -totalHeight;
             }
         } else {
-            if (Math.abs(columnPositions[index]) >= columnHeight) {
+            if (Math.abs(columnPositions[index]) >= totalHeight) {
                 columnPositions[index] = 0;
             }
         }
@@ -683,10 +694,10 @@ function setupEmojiEventListeners() {
             if (currentNodeIndex === 5) {
                 startNode5Timer();
             }
+            
+            // Only stop propagation for the emoji click itself
+            e.stopPropagation();
         }
-        
-        // Prevent event from triggering other touch handlers
-        e.stopPropagation();
     }, { passive: false });
 }
 
