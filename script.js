@@ -3,7 +3,7 @@
 const NODE_COUNT = 7; // Total number of nodes (including attract screen and reset node)
 const BACKGROUND_SPEED = 15.0; // Base speed of background animation
 const LOCKOUT_DURATION = 2800; // How long to prevent swipes after a transition (ms)
-const INACTIVITY_TIMEOUT = 1000; // Time before screen fades out (ms)
+const INACTIVITY_TIMEOUT = 500; // Time before screen fades out (ms)
 const VIDEO_DURATIONS = [0, 23500, 17500, 28500, 20020, 10000, 0]; // Duration each video should play (ms)
 const BACKGROUND_ANIMATION_DURATION = 400; // Duration of background animations (ms)
 const MIN_SWIPE_DISTANCE = 300; // Minimum distance required for a swipe to register (px)
