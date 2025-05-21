@@ -4,7 +4,7 @@ const NODE_COUNT = 7; // Total number of nodes (including attract screen and res
 const BACKGROUND_SPEED = 15.0; // Base speed of background animation
 const LOCKOUT_DURATION = 2800; // How long to prevent swipes after a transition (ms)
 const INACTIVITY_TIMEOUT = 1000; // Time before screen fades out (ms)
-const VIDEO_DURATIONS = [0, 23500, 17500, 29000, 20020, 10000, 0]; // Duration each video should play (ms)
+const VIDEO_DURATIONS = [0, 23500, 17500, 28500, 20020, 10000, 0]; // Duration each video should play (ms)
 const BACKGROUND_ANIMATION_DURATION = 400; // Duration of background animations (ms)
 const MIN_SWIPE_DISTANCE = 300; // Minimum distance required for a swipe to register (px)
 const TRANSITION_DELAY = 2300; // Delay between node transitions (ms)
@@ -549,16 +549,19 @@ function handleVideoPlayback(entries) {
                     clearTimeout(swipeUpTimers.get(video));
                 }
                 
-                // Set new timer based on the video duration
+                // Set timer for two playthroughs
                 const videoDuration = VIDEO_DURATIONS[nodeIndex];
                 const timer = setTimeout(() => {
+                    // Show swipe up at start of second playthrough
                     showSwipeUp(swipeUp);
+                    
+                    // After second playthrough completes
                     setTimeout(() => {
                         if (entry.isIntersecting && !isTransitioning) {
                             video.pause();
                             isVideoPlaying = false;
-                            // Start inactivity timer immediately after video pauses
-                            resetInactivityTimer();
+                            // Use timeout reset to get white fade effect
+                            triggerReset(true);
                         }
                     }, videoDuration);
                 }, videoDuration);
@@ -581,12 +584,7 @@ function handleVideoPlayback(entries) {
                 video.pause();
                 video.currentTime = 0;
                 video.muted = true;
-                
-                if (!isTransitioning) {
-                    isVideoPlaying = false;
-                    // Start inactivity timer immediately after video pauses
-                    resetInactivityTimer();
-                }
+                isVideoPlaying = false;
                 
                 hideSwipeUpPrompt(swipeUp);
                 
@@ -765,31 +763,41 @@ function playSound(sound) {
 
 // Add new function to handle reset
 function triggerReset(isTimeout = false) {
-    showNode(6, true);
-    setTimeout(() => {
-        // Only fade to white if it's a timeout
-        if (isTimeout) {
-            document.body.style.backgroundColor = 'white';
-            document.getElementById('root').classList.add('fade-out');
-        }
+    if (isTimeout) {
+        // Fade to white first
+        document.body.style.backgroundColor = 'white';
+        document.getElementById('root').classList.add('fade-out');
         
-        // After fade out, reset and fade in
+        // After fade out, show node 6 and reset
+        setTimeout(() => {
+            showNode(6, true);
+            setTimeout(() => {
+                resetToNode0();
+                container.scrollTo({
+                    top: 0,
+                    behavior: 'instant'
+                });
+                
+                // Fade in
+                document.body.style.backgroundColor = '';
+                document.getElementById('root').classList.remove('fade-out');
+                document.getElementById('root').classList.add('fade-in');
+                
+                // Remove fade-in class after transition
+                setTimeout(() => {
+                    document.getElementById('root').classList.remove('fade-in');
+                }, FADE_DURATION);
+            }, RESET_DELAY);
+        }, FADE_DURATION);
+    } else {
+        // Manual swipe reset - show node 6 immediately
+        showNode(6, true);
         setTimeout(() => {
             resetToNode0();
             container.scrollTo({
                 top: 0,
                 behavior: 'instant'
             });
-            
-            // Fade in
-            document.body.style.backgroundColor = '';
-            document.getElementById('root').classList.remove('fade-out');
-            document.getElementById('root').classList.add('fade-in');
-            
-            // Remove fade-in class after transition
-            setTimeout(() => {
-                document.getElementById('root').classList.remove('fade-in');
-            }, FADE_DURATION);
         }, RESET_DELAY);
-    }, RESET_DELAY);
+    }
 } 
