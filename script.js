@@ -297,8 +297,8 @@ function initBackgroundAnimation() {
     
     // Split images into three groups based on their index
     const middleColumnImages = images.slice(0, 19); // Images 1-19
-    const leftColumnImages = images.slice(19, 37); // Images 20-37
-    const rightColumnImages = images.slice(37, 55); // Images 38-55
+    const leftColumnImages = images.slice(20, 37); // Images 20-37
+    const rightColumnImages = images.slice(38, 55); // Images 38-55
     
     // Create columns
     for (let i = 0; i < COLUMN_COUNT; i++) {
