@@ -29,6 +29,7 @@ const tapSound = new Audio('Content/Sounds/tap.mp3');
 let lastTouchY = 0;
 let currentNodeIndex = 0;
 let columnPositions = [0, 0, 0];
+let columnHeights = [0, 0, 0]; // Store pre-calculated heights for each column
 let isAccelerating = false;
 let lock = false;
 let inactivityTimer = null;
@@ -304,58 +305,47 @@ function initBackgroundAnimation() {
         const columnDiv = document.createElement('div');
         columnDiv.className = `grid-column column-${i}`;
         
+        let columnImages;
         if (i === 1) { // Middle column
-            // Add first set of images
-            middleColumnImages.forEach(img => {
-                const imgClone = img.cloneNode(true);
-                imgClone.style.aspectRatio = '1/1';
-                imgClone.style.objectFit = 'cover';
-                columnDiv.appendChild(imgClone);
-            });
-            // Add duplicates for seamless looping
-            middleColumnImages.forEach(img => {
-                const imgClone = img.cloneNode(true);
-                imgClone.style.aspectRatio = '1/1';
-                imgClone.style.objectFit = 'cover';
-                columnDiv.appendChild(imgClone);
-            });
+            columnImages = middleColumnImages;
         } else if (i === 0) { // Left column
-            // Add first set of images
-            leftColumnImages.forEach(img => {
-                const imgClone = img.cloneNode(true);
-                imgClone.style.aspectRatio = '1/1';
-                imgClone.style.objectFit = 'cover';
-                columnDiv.appendChild(imgClone);
-            });
-            // Add duplicates for seamless looping
-            leftColumnImages.forEach(img => {
-                const imgClone = img.cloneNode(true);
-                imgClone.style.aspectRatio = '1/1';
-                imgClone.style.objectFit = 'cover';
-                columnDiv.appendChild(imgClone);
-            });
+            columnImages = leftColumnImages;
         } else { // Right column
-            // Add first set of images
-            rightColumnImages.forEach(img => {
-                const imgClone = img.cloneNode(true);
-                imgClone.style.aspectRatio = '1/1';
-                imgClone.style.objectFit = 'cover';
-                columnDiv.appendChild(imgClone);
-            });
-            // Add duplicates for seamless looping
-            rightColumnImages.forEach(img => {
-                const imgClone = img.cloneNode(true);
-                imgClone.style.aspectRatio = '1/1';
-                imgClone.style.objectFit = 'cover';
-                columnDiv.appendChild(imgClone);
-            });
+            columnImages = rightColumnImages;
         }
+        
+        // Add first set of images
+        columnImages.forEach(img => {
+            const imgClone = img.cloneNode(true);
+            imgClone.style.aspectRatio = '1/1';
+            imgClone.style.objectFit = 'cover';
+            columnDiv.appendChild(imgClone);
+        });
+        // Add duplicates for seamless looping
+        columnImages.forEach(img => {
+            const imgClone = img.cloneNode(true);
+            imgClone.style.aspectRatio = '1/1';
+            imgClone.style.objectFit = 'cover';
+            columnDiv.appendChild(imgClone);
+        });
         
         backgroundGrid.appendChild(columnDiv);
     }
     
-    // Start the animation
-    startBackgroundAnimation();
+    // Calculate heights after images are loaded
+    requestAnimationFrame(() => {
+        const columns = Array.from(backgroundGrid.children);
+        const GRID_GAP = 120;
+        
+        columns.forEach((column, index) => {
+            const images = column.querySelectorAll('img');
+            const imageHeight = images[0].offsetHeight;
+            columnHeights[index] = (imageHeight + GRID_GAP) * (images.length / 2);
+        });
+        
+        // Start the animation
+        startBackgroundAnimation();
+    });
 }
 
 // Start or restart the background animation
@@ -453,8 +443,6 @@ function animateBackground() {
     if (!backgroundGrid) return;
     
     const columns = Array.from(backgroundGrid.children);
-    const SCREEN_HEIGHT = 1920;
-    const GRID_GAP = 120;
     
     // Calculate all speeds first
     const speeds = columns.map((_, index) => getCurrentSpeed(index));
@@ -463,10 +451,8 @@ function animateBackground() {
         // Update column position using pre-calculated speed
         columnPositions[index] -= speeds[index];
         
-        // Get the total height of one set of images including gaps
-        const images = column.querySelectorAll('img');
-        const imageHeight = images[0].offsetHeight;
-        const totalHeight = (imageHeight + GRID_GAP) * (images.length / 2);
+        // Use pre-calculated height
+        const totalHeight = columnHeights[index];
         
         // Optimized reset logic
         if (isDownwardSwipe) {
