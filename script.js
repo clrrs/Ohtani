@@ -148,9 +148,11 @@ function resetToNode0() {
         }, 1000); // Wait for fade-in to complete
     });
     
-    // Reset background animation
-    columnPositions = [0, 0, 0];
-    startBackgroundAnimation();
+    // Only reset background animation if not coming from node 5
+    if (currentNodeIndex !== 6) {
+        columnPositions = [0, 0, 0];
+        startBackgroundAnimation();
+    }
     
     // Show attract screen swipe up prompt
     const attractSwipeUp = document.querySelector('.attract-swipe-up');
