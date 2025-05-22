@@ -454,7 +454,7 @@ function animateBackground() {
     
     const columns = Array.from(backgroundGrid.children);
     const SCREEN_HEIGHT = 1920;
-    const GRID_GAP = 120; // Match CSS variable --grid-gap
+    const GRID_GAP = 120;
     
     // Calculate all speeds first
     const speeds = columns.map((_, index) => getCurrentSpeed(index));
@@ -468,13 +468,15 @@ function animateBackground() {
         const imageHeight = images[0].offsetHeight;
         const totalHeight = (imageHeight + GRID_GAP) * (images.length / 2);
         
-        // Reset position when scrolled past one full height
+        // Optimized reset logic
         if (isDownwardSwipe) {
+            // For downward swipe, reset when we've moved up past the threshold
             if (columnPositions[index] > 0) {
                 columnPositions[index] = -totalHeight;
             }
         } else {
-            if (Math.abs(columnPositions[index]) >= totalHeight) {
+            // For upward movement, reset when we've moved down past the threshold
+            if (columnPositions[index] <= -totalHeight) {
                 columnPositions[index] = 0;
             }
         }
@@ -483,7 +485,6 @@ function animateBackground() {
         column.style.transform = `translateY(${columnPositions[index]}px)`;
     });
     
-    // Schedule next frame
     animationFrameId = requestAnimationFrame(animateBackground);
 }
 
